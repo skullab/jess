@@ -2,6 +2,7 @@ define(["require", "exports"], function (require, exports) {
     "use strict";
     var Service = (function () {
         function Service(serviceName, service, shared) {
+            this._instance = null;
             this.setName(serviceName);
             this.setService(service);
             this.setShared(shared);
@@ -25,6 +26,17 @@ define(["require", "exports"], function (require, exports) {
             return this._service;
         };
         Service.prototype.resolve = function () {
+            switch (typeof this._service) {
+                case 'function' || 'object':
+                    if (this.isShared()) {
+                        if (!this._instance) {
+                            this._instance = new this._service();
+                        }
+                    }
+                    break;
+                default:
+            }
+            return this._instance;
         };
         return Service;
     }());

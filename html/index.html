@@ -23,7 +23,46 @@
         <p>Hello world!</p>
 
         <script>
+        	function di(){
+        		this._services = {} ;
+        		this.set = function(name,service,parameters,shared){
+        			this._services[name] = new serviceObj(name,service,parameters,shared,this);
+        		};
+        		this.get = function(name,parameters){
+        			return this._services[name].resolve(parameters) ;
+        		};
+        	}
+        	function serviceObj(name,service,parameters,shared,di){
+        		this._name = name ;
+        		this._service = service ;
+        		this._parameters = parameters ;
+        		this._shared = shared ;
+        		this._di = di ;
+        		this._instance = null ;
+        		
+        		this.resolve = function(parameters){
+        			this._parameters = parameters || this._parameters ;
+        			
+        			if(!this._instance || !this._shared){
+        				this._instance = this._service.apply(this._di,this._parameters);
+        			}
+        			return this._instance ;
+        		}
+        		
+        	}
         	
+        	var myDi = new di();
+        	
+        	myDi.set('myService',function(id){
+        		function myService(id){
+        			this.id = id ;
+        			console.log('myService id is : '+id);
+        		}
+        		return new myService(id);
+        	},['abc123'],false);
+        	
+        	console.log(myDi.get('myService').id);
+        	console.log(myDi.get('myService',['other_id']).id);
         </script>
 
         <!-- Google Analytics: change UA-XXXXX-X to be your site's ID. -->

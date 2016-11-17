@@ -5,5 +5,8 @@ export interface ServiceInterface {
 	isShared():boolean;
 	setService(service:any):void;
 	getService():any;
+	setParameters(parameters:any[]):void;
+	getParameters():any[];
+	isResolved():boolean;
 	resolve():any;
 }

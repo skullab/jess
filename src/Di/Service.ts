@@ -5,11 +5,15 @@ export class Service implements ServiceInterface {
     protected _service: any;
     protected _shared: boolean;
     protected _instance = null;
-
-    constructor(serviceName: string, service: any, shared: boolean) {
+	protected _resolved: boolean = false;
+	protected _parameters: any[] = [];
+	protected _di:{} = {} ;
+	
+    constructor(serviceName: string, service: any, shared: boolean,di:{}) {
         this.setName(serviceName);
         this.setService(service);
         this.setShared(shared);
+		this._di = di ;
     }
     setName(serviceName: string): void {
         this._name = serviceName;
@@ -29,19 +33,27 @@ export class Service implements ServiceInterface {
     getService(): any {
         return this._service;
     }
+	setParameters(parameters: any[]): void {
+		this._parameters = parameters;
+	}
+	getParameters(): any[] {
+		return this._parameters;
+	}
+	isResolved(): boolean {
+		return this._resolved;
+	}
     resolve() {
-        switch (typeof this._service) {
-            case 'function' || 'object':
-                if (this.isShared()) {
-                    if (!this._instance) {
-                        this._instance = new this._service() ;
-                    }
-                }
-                break;
-            default:
+		if (!this.isResolved()) {
+			switch (typeof this._service) {
+				case 'function':
+					if (!this._instance || !this.isShared) {
+						this._instance = this._service.apply(this._di, this.getParameters());
+					}
+					break;
+				default:
+					this._instance = this._service ;
+			}
+		}
 
-        }
-
-        return this._instance;
     }
 }

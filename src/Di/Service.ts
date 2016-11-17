@@ -42,18 +42,22 @@ export class Service implements ServiceInterface {
 	isResolved(): boolean {
 		return this._resolved;
 	}
-    resolve() {
-		if (!this.isResolved()) {
+    resolve():any {
+		if (!this.isResolved() || !this.isShared()) {
+            console.log('resolving..');
 			switch (typeof this._service) {
 				case 'function':
-					if (!this._instance || !this.isShared) {
+					if (!this._instance || !this.isShared()) {
+                        console.log('new instance..');
 						this._instance = this._service.apply(this._di, this.getParameters());
 					}
 					break;
 				default:
 					this._instance = this._service ;
 			}
+            this._resolved = true ;
 		}
-
+        
+        return this._instance ;
     }
 }

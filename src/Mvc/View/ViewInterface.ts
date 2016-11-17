@@ -1,4 +1,4 @@
-import {ViewEngineInterface} from './ViewEngineInterface' ;
+import {ViewEngineInterface} from './Engine/ViewEngineInterface' ;
 export interface ViewInterface {
     /**
      * Set the template view to render.

@@ -1,7 +1,9 @@
 import {ViewInterface} from './View/ViewInterface';
-import {ViewEngineInterface} from './View/ViewEngineInterface';
+import {ViewEngineInterface} from './View/Engine/ViewEngineInterface';
+import {InjectionAwareInterface} from '../Di/InjectionAwareInterface';
+import {DiInterface} from '../Di/DiInterface';
 
-export class View implements ViewInterface {
+export class View implements ViewInterface, InjectionAwareInterface {
 
     protected _engine: ViewEngineInterface = null;
     protected _template: string = '';
@@ -9,9 +11,12 @@ export class View implements ViewInterface {
     protected _variables: {} = {};
     protected _partials: {} = {};
     protected _rootElement: HTMLElement;
-
-    constructor(element?: HTMLElement) {
-        this._rootElement = element ? element : document.documentElement;
+    protected _di = null;
+  
+    constructor(di: DiInterface, element: HTMLElement = document.documentElement) {
+        this.setDi(di);
+        this._rootElement = element
+        
         this.setTemplate(this._rootElement.innerHTML);
     }
     setTemplate(template: string): void {
@@ -21,7 +26,7 @@ export class View implements ViewInterface {
         return this._template;
     }
     setContent(content: string): void {
-        this._content = content;
+       this._rootElement.innerHTML = this._content = content;
     }
     getContent(): string {
         return this._content;
@@ -33,10 +38,10 @@ export class View implements ViewInterface {
         let v = Object.create(variables);
         if (merge) {
             for (let i in v) {
-                this.setVar(i,v[i]);
+                this.setVar(i, v[i]);
             }
         } else {
-            this._variables = v ;
+            this._variables = v;
         }
     }
     getVar(name: string): any {
@@ -60,5 +65,19 @@ export class View implements ViewInterface {
     }
     getViewEngine(): ViewEngineInterface {
         return this._engine;
+    }
+    /**
+    * Set the dependency injection container.
+    * @param {object} di : The dependency injection container.
+    */
+    setDi(di: DiInterface): void {
+        this._di = di;
+    }
+    /**
+     * Returns the dependecy injection container.
+     * @return {object} : The dependency injection container.
+     */
+    getDi(): DiInterface {
+        return this._di;
     }
 }

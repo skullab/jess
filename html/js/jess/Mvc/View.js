@@ -1,13 +1,16 @@
 define(["require", "exports"], function (require, exports) {
     "use strict";
     var View = (function () {
-        function View(element) {
+        function View(di, element) {
+            if (element === void 0) { element = document.documentElement; }
             this._engine = null;
             this._template = '';
             this._content = '';
             this._variables = {};
             this._partials = {};
-            this._rootElement = element ? element : document.documentElement;
+            this._di = null;
+            this.setDi(di);
+            this._rootElement = element;
             this.setTemplate(this._rootElement.innerHTML);
         }
         View.prototype.setTemplate = function (template) {
@@ -17,7 +20,7 @@ define(["require", "exports"], function (require, exports) {
             return this._template;
         };
         View.prototype.setContent = function (content) {
-            this._content = content;
+            this._rootElement.innerHTML = this._content = content;
         };
         View.prototype.getContent = function () {
             return this._content;
@@ -57,6 +60,20 @@ define(["require", "exports"], function (require, exports) {
         };
         View.prototype.getViewEngine = function () {
             return this._engine;
+        };
+        /**
+        * Set the dependency injection container.
+        * @param {object} di : The dependency injection container.
+        */
+        View.prototype.setDi = function (di) {
+            this._di = di;
+        };
+        /**
+         * Returns the dependecy injection container.
+         * @return {object} : The dependency injection container.
+         */
+        View.prototype.getDi = function () {
+            return this._di;
         };
         return View;
     }());

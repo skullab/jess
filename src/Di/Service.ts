@@ -7,13 +7,13 @@ export class Service implements ServiceInterface {
     protected _instance = null;
 	protected _resolved: boolean = false;
 	protected _parameters: any[] = [];
-	protected _di:{} = {} ;
-	
-    constructor(serviceName: string, service: any, shared: boolean,di:{}) {
+	protected _di: {} = {};
+
+    constructor(serviceName: string, service: any, shared: boolean, di: {}) {
         this.setName(serviceName);
         this.setService(service);
         this.setShared(shared);
-		this._di = di ;
+		this._di = di;
     }
     setName(serviceName: string): void {
         this._name = serviceName;
@@ -42,7 +42,7 @@ export class Service implements ServiceInterface {
 	isResolved(): boolean {
 		return this._resolved;
 	}
-    resolve():any {
+    resolve(): any {
 		if (!this.isResolved() || !this.isShared()) {
             console.log('resolving..');
 			switch (typeof this._service) {
@@ -53,11 +53,14 @@ export class Service implements ServiceInterface {
 					}
 					break;
 				default:
-					this._instance = this._service ;
+					this._instance = this._service;
 			}
-            this._resolved = true ;
+			if (this._instance && typeof this._instance['setDi'] === 'function') {
+				this._instance.setDi(this._di);
+			}
+            this._resolved = true;
 		}
-        
-        return this._instance ;
+
+        return this._instance;
     }
 }

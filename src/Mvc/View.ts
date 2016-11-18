@@ -10,13 +10,11 @@ export class View implements ViewInterface, InjectionAwareInterface {
     protected _content: string = '';
     protected _variables: {} = {};
     protected _partials: {} = {};
-    protected _rootElement: HTMLElement;
+    protected _rootElement: Element;
     protected _di = null;
   
-    constructor(di: DiInterface, element: HTMLElement = document.documentElement) {
-        this.setDi(di);
+    constructor(element: Element = document.documentElement) {
         this._rootElement = element
-        
         this.setTemplate(this._rootElement.innerHTML);
     }
     setTemplate(template: string): void {

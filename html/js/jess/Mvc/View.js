@@ -1,7 +1,7 @@
 define(["require", "exports"], function (require, exports) {
     "use strict";
     var View = (function () {
-        function View(di, element) {
+        function View(element) {
             if (element === void 0) { element = document.documentElement; }
             this._engine = null;
             this._template = '';
@@ -9,7 +9,6 @@ define(["require", "exports"], function (require, exports) {
             this._variables = {};
             this._partials = {};
             this._di = null;
-            this.setDi(di);
             this._rootElement = element;
             this.setTemplate(this._rootElement.innerHTML);
         }

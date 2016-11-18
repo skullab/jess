@@ -40,9 +40,7 @@
         </style>
         
         <script src="js/vendor/modernizr-2.8.3.min.js"></script>
-        
-       
-        
+       	<script src="js/vendor/mustache.min.js"></script>
         <script src="js/vendor/pace.min.js"></script>
     </head>
     <body>
@@ -53,6 +51,9 @@
 
         <!-- Add your site or application content here -->
         <p>Hello {{ name.first }} {{ name.last }}</p>
+        
+        <p>{{> user}}</p>
+        
 		<ul>
 			{{#myList}}
 			<li>{{foo}}</li>

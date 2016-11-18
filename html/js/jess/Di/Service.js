@@ -51,6 +51,9 @@ define(["require", "exports"], function (require, exports) {
                     default:
                         this._instance = this._service;
                 }
+                if (this._instance && typeof this._instance['setDi'] === 'function') {
+                    this._instance.setDi(this._di);
+                }
                 this._resolved = true;
             }
             return this._instance;

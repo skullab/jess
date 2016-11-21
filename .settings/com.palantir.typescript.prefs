@@ -1,5 +1,5 @@
 build.path.exportedFolder=
 build.path.sourceFolder=src
-compiler.outputDirOption=html/js/jess
+compiler.outputDirOption=html/js
 compiler.outputFileOption=
 eclipse.preferences.version=1

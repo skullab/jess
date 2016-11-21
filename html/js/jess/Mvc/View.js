@@ -7,13 +7,25 @@ define(["require", "exports"], function (require, exports) {
             this._template = '';
             this._content = '';
             this._variables = {};
-            this._partials = {};
             this._di = null;
+            this.setRootElement(element);
+            return this;
+        }
+        View.prototype.setName = function (name) {
+            this._name = name;
+        };
+        View.prototype.getName = function () {
+            return this._name;
+        };
+        View.prototype.setRootElement = function (element) {
             this._rootElement = element;
             this.setTemplate(this._rootElement.innerHTML);
-        }
+        };
+        View.prototype.getRootElement = function () {
+            return this._rootElement;
+        };
         View.prototype.setTemplate = function (template) {
-            this._template = template;
+            this._template = template.replace(/&gt;/g, '>');
         };
         View.prototype.getTemplate = function () {
             return this._template;
@@ -47,11 +59,20 @@ define(["require", "exports"], function (require, exports) {
         View.prototype.getPartials = function () {
             return this._partials;
         };
+        View.prototype.checkEngine = function () {
+            if (!this._engine || typeof this._engine['parse'] !== 'function' || typeof this._engine['render'] !== 'function') {
+                throw new Error("The View MUST have sets a View Engine instance");
+            }
+        };
         View.prototype.parse = function (tags) {
-            this._content = this._engine.parse(this.getTemplate(), tags);
+            this.checkEngine();
+            this._parsedContent = this._engine.parse(this.getTemplate(), tags);
+            //console.log(this._parsedContent);
         };
         View.prototype.render = function (partials) {
+            this.checkEngine();
             partials = partials ? partials : this.getPartials();
+            //console.log(partials);
             this.setContent(this._engine.render(this.getTemplate(), this._variables, partials));
         };
         View.prototype.setViewEngine = function (engine) {
@@ -60,6 +81,8 @@ define(["require", "exports"], function (require, exports) {
         View.prototype.getViewEngine = function () {
             return this._engine;
         };
+        View.prototype.start = function () { };
+        View.prototype.finish = function () { };
         /**
         * Set the dependency injection container.
         * @param {object} di : The dependency injection container.

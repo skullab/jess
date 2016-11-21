@@ -33,13 +33,20 @@ export class Di implements DiInterface {
         }
         throw new Error("Service '" + serviceName + "' was not found in the dependency injection container");
     }
+    getServices() {
+        let s = {};
+        for (let name in this._services) {
+            s[name] = this.get(name);
+        }
+        return s ;
+    }
     /**
      * Set a service object
      * @param {string} serviceName : The name of the service.
      * @param {object} service : The service object that implements ServiceInterface.
      */
-    setRaw(serviceName: string, service: ServiceInterface): void { 
-        this._services[serviceName] = service ;
+    setRaw(serviceName: string, service: ServiceInterface): void {
+        this._services[serviceName] = service;
     }
     /**
      * Returns a service object without resolving.
@@ -83,6 +90,6 @@ export class Di implements DiInterface {
         for (let i in this._services) {
             this.remove(i);
         }
-        this._services = {} ;
+        this._services = {};
     }
 }

@@ -40,11 +40,11 @@ define(["require", "exports"], function (require, exports) {
         };
         Service.prototype.resolve = function () {
             if (!this.isResolved() || !this.isShared()) {
-                console.log('resolving..');
+                //console.log('resolving..');
                 switch (typeof this._service) {
                     case 'function':
                         if (!this._instance || !this.isShared()) {
-                            console.log('new instance..');
+                            //console.log('new instance..');
                             this._instance = this._service.apply(this._di, this.getParameters());
                         }
                         break;

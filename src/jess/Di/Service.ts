@@ -1,6 +1,6 @@
 import {ServiceInterface} from './Service/ServiceInterface';
-export class Service implements ServiceInterface {
 
+export class Service implements ServiceInterface {
     protected _name: string;
     protected _service: any;
     protected _shared: boolean;
@@ -44,11 +44,11 @@ export class Service implements ServiceInterface {
 	}
     resolve(): any {
 		if (!this.isResolved() || !this.isShared()) {
-            console.log('resolving..');
+            //console.log('resolving..');
 			switch (typeof this._service) {
 				case 'function':
 					if (!this._instance || !this.isShared()) {
-                        console.log('new instance..');
+                        //console.log('new instance..');
 						this._instance = this._service.apply(this._di, this.getParameters());
 					}
 					break;

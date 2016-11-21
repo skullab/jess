@@ -8,23 +8,38 @@ export class View implements ViewInterface, InjectionAwareInterface {
     protected _engine: ViewEngineInterface = null;
     protected _template: string = '';
     protected _content: string = '';
+    protected _parsedContent:any;
     protected _variables: {} = {};
-    protected _partials: {} = {};
+    protected _partials: {};
     protected _rootElement: Element;
     protected _di = null;
-  
+    protected _name: string;
+
     constructor(element: Element = document.documentElement) {
-        this._rootElement = element
+        this.setRootElement(element);
+        return this;
+    }
+    setName(name: string) {
+        this._name = name;
+    }
+    getName(): string {
+        return this._name;
+    }
+    setRootElement(element: Element) {
+        this._rootElement = element;
         this.setTemplate(this._rootElement.innerHTML);
     }
+    getRootElement(): Element {
+        return this._rootElement;
+    }
     setTemplate(template: string): void {
-        this._template = template;
+        this._template = template.replace(/&gt;/g, '>');
     }
     getTemplate(): string {
-        return this._template;
+        return this._template ;
     }
     setContent(content: string): void {
-       this._rootElement.innerHTML = this._content = content;
+        this._rootElement.innerHTML = this._content = content;
     }
     getContent(): string {
         return this._content;
@@ -51,11 +66,20 @@ export class View implements ViewInterface, InjectionAwareInterface {
     getPartials() {
         return this._partials;
     }
+    protected checkEngine() {
+        if (!this._engine || typeof this._engine['parse'] !== 'function' || typeof this._engine['render'] !== 'function') {
+            throw new Error("The View MUST have sets a View Engine instance");
+        }
+    }
     parse(tags?: string[]): void {
-        this._content = this._engine.parse(this.getTemplate(), tags);
+        this.checkEngine();
+        this._parsedContent = this._engine.parse(this.getTemplate(), tags);
+        //console.log(this._parsedContent);
     }
     render(partials?: {}): void {
+        this.checkEngine();
         partials = partials ? partials : this.getPartials();
+        //console.log(partials);
         this.setContent(this._engine.render(this.getTemplate(), this._variables, partials));
     }
     setViewEngine(engine: ViewEngineInterface): void {
@@ -64,6 +88,9 @@ export class View implements ViewInterface, InjectionAwareInterface {
     getViewEngine(): ViewEngineInterface {
         return this._engine;
     }
+    start() { }
+    finish() { }
+
     /**
     * Set the dependency injection container.
     * @param {object} di : The dependency injection container.

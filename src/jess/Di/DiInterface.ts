@@ -17,6 +17,7 @@ export interface DiInterface {
      * @return {any} : The resolving service.
      */
     get(serviceName:string,parameters?:any[]):any;
+    getServices():{};
     /**
      * Set a raw service object
      * @param {string} serviceName : The name of the service.

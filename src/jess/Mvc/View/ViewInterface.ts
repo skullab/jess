@@ -1,5 +1,8 @@
 import {ViewEngineInterface} from './Engine/ViewEngineInterface' ;
 export interface ViewInterface {
+    
+    setName(name:string):void;
+    getName():string;
     /**
      * Set the template view to render.
      * 

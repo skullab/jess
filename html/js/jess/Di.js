@@ -30,6 +30,13 @@ define(["require", "exports", './Di/Service'], function (require, exports, Servi
             }
             throw new Error("Service '" + serviceName + "' was not found in the dependency injection container");
         };
+        Di.prototype.getServices = function () {
+            var s = {};
+            for (var name_1 in this._services) {
+                s[name_1] = this.get(name_1);
+            }
+            return s;
+        };
         /**
          * Set a service object
          * @param {string} serviceName : The name of the service.

@@ -79,8 +79,7 @@ define(["require", "exports", './Controller', '../util/StringHelper'], function 
             this._activeControllerName = controller;
             this._activeActionName = action;
             this._activeParams = params;
-            //this.dispatch();
-            this._di.get('application').loop();
+            this.dispatch();
         };
         Dispatcher.prototype.isFinished = function () {
             return this._dispatched;

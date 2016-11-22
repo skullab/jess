@@ -61,7 +61,7 @@ export class View implements ViewInterface, InjectionAwareInterface {
         return this._variables[name];
     }
     getVars(): {} {
-        return this._variables ;
+        return this._variables;
     }
     setPartials(partials: {}): void {
         this._partials = partials;
@@ -93,7 +93,12 @@ export class View implements ViewInterface, InjectionAwareInterface {
     }
     start() { }
     finish() { }
-
+    query(q: string): any {
+        return this._rootElement.querySelector(q);
+    }
+    queryAll(q: string): any {
+        return this._rootElement.querySelectorAll(q);
+    }
     /**
     * Set the dependency injection container.
     * @param {object} di : The dependency injection container.

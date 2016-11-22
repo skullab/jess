@@ -4,6 +4,7 @@ import {DiInterface} from '../Di/DiInterface';
 import {Controller} from './Controller';
 import {View} from './View';
 import {DispatcherInterface} from './Dispatcher/DispatcherInterface';
+import {Dispatcher} from './Dispatcher';
 import {StringHelper} from '../util/StringHelper';
 import {ViewManager} from './View/ViewManager';
 
@@ -23,67 +24,180 @@ export class Application implements ApplicationInterface, InjectionAwareInterfac
     protected _defaultModule: string;
     protected _defaultController: string;
     protected _defaultAction: string;
+    protected _defaultParams: {}[];
+
+    protected _activeView: string | number;
+
     protected _dispatcher: DispatcherInterface;
 
     protected _dataApplicationPrefix: string;
-    protected _dataControllerPrefix: string;
-    protected _dataActionPrefix: string;
-    protected _dataModulePrefix: string;
 
-    constructor(di: DiInterface) {
+    constructor(di: DiInterface, prefix: string = '') {
+
         this.setDi(di);
-        this._dispatcher = this.getDi().get('dispatcher');
-        this.getDi().set('application', this, true);
-        this.getDi().set('viewManager', new ViewManager(this.getDi()), true);
-        if (this.getDi().has('view')) {
-            this.getDi().get('viewManager').addView(this.getDi().get('view'));
-        }
+        this.setDataApplicationPrefix(prefix);
+
+        this._registerServices();
+        this._findModules();
+        this._findViews();
+        //this._findEvents();
     }
+
     setDataApplicationPrefix(prefix: string) {
         this._dataApplicationPrefix = prefix;
     }
     getDataApplicationPrefix(): string {
         return this._dataApplicationPrefix;
     }
-    protected _findModules() { }
+    protected _registerServices() {
+        //console.log('register services..');
+        this._di.set('application', this, true);
+
+        if (!this._di.has('dispatcher')) {
+            this._di.set('dispatcher', function() {
+                let dispatcher = new Dispatcher();
+                return dispatcher;
+            }, true);
+        }
+        this._dispatcher = this._di.get('dispatcher')
+
+        if (!this._di.has('viewManager')) {
+            this._di.set('viewManager', function() {
+                let vm = new ViewManager(this);
+                if (this.has('view')) {
+                    let _v = this.get('view');
+                    _v.setName('view');
+                    vm.addView(_v);
+                }
+                return vm;
+            }, true);
+        }
+    }
+    protected _findModules() {
+        //console.log('finding modules..');
+        let prefix = (this._dataApplicationPrefix ? this._dataApplicationPrefix + '-' : '') + 'module';
+        let _query = '[data-' + prefix + ']';
+        let _dataName = StringHelper.camelize(prefix);
+        let _modules = document.querySelectorAll(_query);
+        let _obj = {};
+
+        for (let i = 0; i < _modules.length; i++) {
+            let el = <HTMLElement>_modules[i];
+            let _default = el.hasAttribute('default');
+            let moduleInstance = this._di.get(el.dataset[_dataName]);
+            _obj[el.dataset[_dataName]] = this._di.get(el.dataset[_dataName]);
+            if (_default) this.setDefaultModule(el.dataset[_dataName]);
+
+        }
+        this.registerModules(_obj);
+        if (!this._defaultModule) {
+            this.setDefaultModule(_obj[Object.keys(_obj)[0]]);
+        }
+    }
     protected _findViews() {
+        //console.log('finding views..');
         let prefix = (this._dataApplicationPrefix ? this._dataApplicationPrefix + '-' : '') + 'view';
         let _query = '[data-' + prefix + ']';
         let _dataName = StringHelper.camelize(prefix);
         let _views = document.querySelectorAll(_query);
+
         for (let i = 0; i < _views.length; i++) {
             let el = <HTMLElement>_views[i];
-            let viewInstance = new View(el).setName(el.dataset[_dataName]);
+            let active = el.hasAttribute('active');
+            let viewInstance = new View(el);
+            viewInstance.setName(el.dataset[_dataName]);
             this._di.get('viewManager').addView(viewInstance);
+            if (active) {
+                this.setActiveView(el.dataset[_dataName]);
+            }
         }
     }
 
-    protected _initialize() {
+    protected _resolveParams(p: string): {}[] {
+        if (!p) return [];
+        let v = p.split(',');
+        let s = [];
+        for (let i in v) {
+            s.push(v[i].trim());
+        }
+        return s;
+    }
+    protected _findListeners(root?: any) {
+        root = root || document;
+        let prefix = (this._dataApplicationPrefix ? this._dataApplicationPrefix + '-' : '') + 'listener';
+        let _query = '[data-' + prefix + ']';
+        let _dataName = StringHelper.camelize(prefix);
+        let _listeners = root.querySelectorAll(_query);
+        for (let i = 0; i < _listeners.length; i++) {
+            let el = <HTMLElement>_listeners[i];
+            let _definition = el.dataset[_dataName];
+            let _obj = JSON.parse(_definition);
 
-        let prefix = this._dataModulePrefix ? this._dataModulePrefix + '-' : '';
-        let _mQuery = '[data-' + prefix + 'module]';
-        let _m = document.querySelectorAll(_mQuery);
-        for (let i = 0; i < _m.length; i++) {
-            let e = <HTMLElement>_m[i];
-            let events = e.querySelectorAll('[data-event]');
-            for (let _i = 0; _i < events.length; _i++) {
-                let _e = <HTMLElement>events[_i];
-                let _controller = _e.dataset['controller'];
-                let _action = _e.dataset['action'];
-                //let _module = _e.dataset['module'] || this.getDefaultModule();
-                let _this = this;
-                _e.addEventListener(_e.dataset['event'], function() {
-                    _this._dispatcher.forward(_controller, _action);
-                });
+            let _event = _obj.event;
+            let _module = _obj.module;
+            let _controller = _obj.controller;
+            let _action = _obj.action
+            
+            let _paramsString = _obj.params ;
+            let _params = this._resolveParams(_paramsString);
+            //console.log(_params)
+            let _view = _obj.view;
+            
+            let _t = this;
+            
+            let _handler = function(e) {
+                console.log('fire event > ' + _event);
+                if (_view) _t.setActiveView(_view);
+                //_params.shift();
+                _params.unshift(e);
+                //_params.shift();
+                _t.handle(_module, _controller, _action, _params);
+                el.removeEventListener(_event, _handler, false);
+            }
+            el.addEventListener(_event, _handler);
+        }
+    }
+    protected _findEvents(root?: any) {
+        //console.log('finding events..');
+        root = root || document;
 
+        let prefix = (this._dataApplicationPrefix ? this._dataApplicationPrefix + '-' : '') + 'event';
+        let cPrefix = (this._dataApplicationPrefix ? this._dataApplicationPrefix + '-' : '') + 'controller';
+        let aPrefix = (this._dataApplicationPrefix ? this._dataApplicationPrefix + '-' : '') + 'action';
+        let pPrefix = (this._dataApplicationPrefix ? this._dataApplicationPrefix + '-' : '') + 'params';
+        let mPrefix = (this._dataApplicationPrefix ? this._dataApplicationPrefix + '-' : '') + 'model';
+        let modPrefix = (this._dataApplicationPrefix ? this._dataApplicationPrefix + '-' : '') + 'module';
+
+        let vPrefix = (this._dataApplicationPrefix ? this._dataApplicationPrefix + '-' : '') + 'bind-view';
+
+        let _query = '[data-' + prefix + ']';
+        let _dataName = StringHelper.camelize(prefix);
+
+        let _events = root.querySelectorAll(_query);
+
+        for (let i = 0; i < _events.length; i++) {
+            let el = <HTMLElement>_events[i];
+
+            let _module = el.dataset[StringHelper.camelize(modPrefix)];
+            let _controller = el.dataset[StringHelper.camelize(cPrefix)];
+            let _action = el.dataset[StringHelper.camelize(aPrefix)];
+            let _model = el.dataset[StringHelper.camelize(mPrefix)];
+
+            let _paramsString = el.dataset[StringHelper.camelize(pPrefix)];
+
+            let _params = this._resolveParams(_paramsString);
+            let _view = el.dataset[StringHelper.camelize(vPrefix)];
+            let _t = this;
+
+            let _handler = function(e) {
+                console.log('fire event > ' + el.dataset[_dataName]);
+                if (_view) _t.setActiveView(_view);
+                _params.push(e);
+                _t.handle(_module, _controller, _action, _params);
+                el.removeEventListener(el.dataset[_dataName], _handler, false);
             }
-            let n = StringHelper.uncapitalize(StringHelper.camelize(prefix + 'module'));
-            if (i == 0) {
-                this.setDefaultModule(e.dataset[n]);
-            }
-            let __m = {};
-            __m[e.dataset[n]] = this.getDi().get(e.dataset[n]);
-            this.registerModules(__m, true);
+
+            el.addEventListener(el.dataset[_dataName], _handler);
         }
     }
 
@@ -101,50 +215,80 @@ export class Application implements ApplicationInterface, InjectionAwareInterfac
         return this._modules;
     }
     setDefaultModule(mod: any): void {
+        if (!mod) return;
+
         switch (typeof mod) {
             case 'object':
                 this._modules['default'] = mod;
                 this._defaultModule = 'default';
                 break;
             case 'string':
-                let i = this._modules[mod] ? this._modules[mod] : this.getDi().get(mod);
                 this._defaultModule = mod;
-                this._modules[mod] = i;
         }
     }
     getDefaultModule(): {} {
         return this._modules[this._defaultModule];
     }
-    beforeHandle() {
-        console.log('before handle');
-
+    setDefaultController(controller: string): void {
+        this._defaultController = controller ? controller : 'index';
     }
-    private _handle(): void {
+    getDefaultController(): string {
+        return this._defaultController;
+    }
+    setDefaultAction(action: string): void {
+        this._defaultAction = action ? action : 'index';
+    }
+    getDefaultAction(): string {
+        return this._defaultAction;
+    }
+    setDefaultParams(params: {}[]): void {
+        this._defaultParams = params ? params : [];
+    }
+    getDefaultParams(): {}[] {
+        return this._defaultParams
+    }
+    setActiveView(viewName: string) {
+        this._activeView = viewName;
+    }
+    getActiveView() {
+        this._activeView = this._activeView ? this._activeView : (this._di.has('view') ? 'view' : 0);
+        return this._di.get('viewManager').getView(this._activeView);
+    }
+    protected beforeHandle(mod?: string, controller?: string, action?: string, params?: {}[]) {
+        //console.log('before handle > setting defaults');
+        this.setDefaultModule(mod);
+        this.setDefaultController(controller);
+        this.setDefaultAction(action);
+        this.setDefaultParams(params);
+    }
 
-        this._initialize();
+    handle(mod?: string, controller?: string, action?: string, params?: {}[]): void {
+        this.beforeHandle(mod, controller, action, params);
         this._dispatcher.setModule(this.getDefaultModule());
+        this._dispatcher.setControllerName(this.getDefaultController());
+        this._dispatcher.setActionName(this.getDefaultAction());
+        this._dispatcher.setParams(this.getDefaultParams());
         this._dispatcher.dispatch();
         this.afterHandle();
     }
-    handle(): void {
-        let _this = this;
-        this.beforeHandle();
-        this.loop();
-        this.afterHandle();
-    }
-    afterHandle() {
-        console.log('after handle');
 
+    protected beforeRender() {
+        //console.log('before render..');
     }
-    loop() {
-        // render views
-        //this._di.get('view').render();
-        this._initialize();
-        this._dispatcher.setModule(this.getDefaultModule());
-        this._dispatcher.dispatch();
-        this._di.get('view').render();
-        this._initialize();
+    protected afterRender() {
+        //console.log('after render..');
     }
+
+    protected afterHandle() {
+        //console.log('after handle');
+        this.beforeRender();
+        let view = this.getActiveView();
+        view.render();
+        this.afterRender();
+        this._findEvents();
+        this._findListeners();
+    }
+
     /**
     * Set the dependency injection container.
     * @param {object} di : The dependency injection container.

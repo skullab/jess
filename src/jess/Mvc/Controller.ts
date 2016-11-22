@@ -2,31 +2,38 @@ import {ControllerInterface} from './Controller/ControllerInterface';
 import {DiInterface} from '../Di/DiInterface';
 import {InjectionAwareInterface} from '../Di/InjectionAwareInterface';
 import {View} from './View';
+import {DispatcherInterface} from './Dispatcher/DispatcherInterface';
 
 export abstract class Controller implements ControllerInterface, InjectionAwareInterface {
+
     private _di: DiInterface;
     protected view: View;
-    protected element: Element;
+    protected dispatcher: DispatcherInterface;
 
-    constructor() {}
+    constructor() { }
 
     protected onInitialize(): any { }
 
-    setRootElement(element: Element) {
-        this.element = element;
-    }
-    getRootElement(): Element {
-        return this.element ;
-    }
     setView(view: any): void {
         if (typeof view === 'object' && view instanceof View) {
             this.view = view;
         } else if (typeof view === 'string') {
-            this.view = this.getDi().get(view);
+            this.view = this._di.get('viewManager').getView(view)
         }
     }
     getView(): View {
         return this.view;
+    }
+
+    protected setServices() {
+        if (this._di.has('view')) {
+            this.view = this._di.get('view');
+        } else {
+            this.view = this._di.get('application').getActiveView();
+        }
+        if (this._di.has('dispatcher')) {
+            this.dispatcher = this._di.get('dispatcher')
+        }
     }
     /**
      * Set the dependency injection container.
@@ -34,10 +41,7 @@ export abstract class Controller implements ControllerInterface, InjectionAwareI
      */
     setDi(di: DiInterface): void {
         this._di = di;
-        let _s = this._di.getServices();
-        for (let name in _s) {
-            this[name] = _s[name];
-        }
+        this.setServices();
     }
     /**
     * Returns the dependecy injection container.

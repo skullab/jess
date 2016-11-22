@@ -4,22 +4,27 @@ define(["require", "exports", './View'], function (require, exports, View_1) {
         function Controller() {
         }
         Controller.prototype.onInitialize = function () { };
-        Controller.prototype.setRootElement = function (element) {
-            this.element = element;
-        };
-        Controller.prototype.getRootElement = function () {
-            return this.element;
-        };
         Controller.prototype.setView = function (view) {
             if (typeof view === 'object' && view instanceof View_1.View) {
                 this.view = view;
             }
             else if (typeof view === 'string') {
-                this.view = this.getDi().get(view);
+                this.view = this._di.get('viewManager').getView(view);
             }
         };
         Controller.prototype.getView = function () {
             return this.view;
+        };
+        Controller.prototype.setServices = function () {
+            if (this._di.has('view')) {
+                this.view = this._di.get('view');
+            }
+            else {
+                this.view = this._di.get('application').getActiveView();
+            }
+            if (this._di.has('dispatcher')) {
+                this.dispatcher = this._di.get('dispatcher');
+            }
         };
         /**
          * Set the dependency injection container.
@@ -27,10 +32,7 @@ define(["require", "exports", './View'], function (require, exports, View_1) {
          */
         Controller.prototype.setDi = function (di) {
             this._di = di;
-            var _s = this._di.getServices();
-            for (var name_1 in _s) {
-                this[name_1] = _s[name_1];
-            }
+            this.setServices();
         };
         /**
         * Returns the dependecy injection container.

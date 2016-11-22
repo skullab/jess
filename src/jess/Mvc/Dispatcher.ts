@@ -96,13 +96,14 @@ export class Dispatcher implements DispatcherInterface, InjectionAwareInterface 
         }
         //this._di.get('view').render();
     }
+    
     forward(controller: string, action: string, params?: {}[]) {
         this._activeControllerName = controller;
         this._activeActionName = action;
         this._activeParams = params;
-        //this.dispatch();
-        this._di.get('application').loop();
+        this.dispatch();
     }
+    
     isFinished(): boolean {
         return this._dispatched;
     }

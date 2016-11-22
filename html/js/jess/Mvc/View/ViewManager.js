@@ -1,11 +1,8 @@
-define(["require", "exports", '../View', '../../util/ArrayList', '../../util/StringHelper'], function (require, exports, View_1, ArrayList_1, StringHelper_1) {
+define(["require", "exports", '../View', '../../util/ArrayList'], function (require, exports, View_1, ArrayList_1) {
     "use strict";
     var ViewManager = (function () {
         function ViewManager(di, views) {
             this.setDi(di);
-            if (this._di.has('application')) {
-                this._dataViewPrefix = this._di.get('application').getDataApplicationPrefix();
-            }
             this._views = new ArrayList_1.ArrayList(views);
         }
         ViewManager.prototype.viewExists = function (index) {
@@ -38,54 +35,30 @@ define(["require", "exports", '../View', '../../util/ArrayList', '../../util/Str
             return null;
         };
         ViewManager.prototype.getView = function (index) {
-            return this._views.get(index);
+            if (typeof index === 'number') {
+                return this._views.get(index);
+            }
+            else if (typeof index === 'string') {
+                return this.getViewByName(index);
+            }
         };
         ViewManager.prototype.addView = function (view) {
-            this._views.add(view);
-        };
-        ViewManager.prototype.addAllDataView = function (query) {
-            if (query === void 0) { query = ''; }
-            var n = this.getAllDataView();
-            for (var i = 0; i < n.length; i++) {
-                var e = n[i];
-                var v = new View_1.View(e);
-                v.setName(e.dataset[StringHelper_1.StringHelper.uncapitalize(StringHelper_1.StringHelper.camelize(this._dataViewPrefix + ' view'))]);
-                var viewEngine = this.getDi().get('viewEngine');
-                if (viewEngine)
-                    v.setViewEngine(viewEngine);
-                this.addView(v);
+            if (this._di.has('viewEngine')) {
+                view.setViewEngine(this._di.get('viewEngine'));
             }
+            this._views.add(view);
         };
         ViewManager.prototype.removeView = function (view) {
             this._views.remove(view);
         };
         ViewManager.prototype.renderView = function (index) {
-            var v = this._views.get(index);
-            if (v && v instanceof View_1.View) {
-                v.render();
-            }
+            this.getView(index).render();
         };
         ViewManager.prototype.renderAll = function () {
             for (var _i = 0, _a = this.toArray(); _i < _a.length; _i++) {
                 var v = _a[_i];
                 v.render();
             }
-        };
-        ViewManager.prototype.setDataViewPrefix = function (prefix) {
-            this._dataViewPrefix = prefix;
-        };
-        ViewManager.prototype.getDataViewPrefix = function () {
-            return this._dataViewPrefix;
-        };
-        ViewManager.prototype.getDataView = function (name) {
-            var prefix = this._dataViewPrefix ? this._dataViewPrefix + '-' : '';
-            return document.querySelector('[data-' + prefix + 'view="' + name + '"]');
-        };
-        ViewManager.prototype.getAllDataView = function (query) {
-            if (query === void 0) { query = ''; }
-            var prefix = this._dataViewPrefix !== '' ? this._dataViewPrefix + '-' : '';
-            query += '[data-' + prefix + 'view]';
-            return document.querySelectorAll(query);
         };
         ViewManager.prototype.toArray = function () {
             return this._views.toArray();

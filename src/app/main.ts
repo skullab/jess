@@ -13,54 +13,38 @@ import {StringHelper} from '../jess/util/StringHelper';
 
 export module MyApp {
     export class IndexController extends Controller {
-        onInitialize() {
-
-        }
+       
         indexAction() {
-            console.log('on index action', this.view);
-            this.view.setVar('name', 'John');
-            let n = this.view.getVar('number') || 3;
-            this.view.setVar('number_mails', n);
-
-            /*document.querySelector('#myButton').addEventListener('click', function(e) {
-                _this.dispatcher.forward('index','index');
-            });*/
-            //this.view.render();
+            console.log('> index action');
+            this.view.setVars({
+                name: '[enter your name please]',
+            }, true);
+            
         }
-        readAction() {
-            console.log('on read action');
-            let n = this.view.getVar('number_mails');
-            if (typeof n === 'number') {
-                if (n == 1) {
-                    this.view.setVar('number_mails', 'nothing');
-                } else {
-                    this.view.setVar('number_mails', --n);
-                }
-            }
-            //this.view.render();
+        changeNameAction() {
+            console.log('> change action');
+            console.log(arguments);
+            //this.view.setVar('name', e.target.value);
         }
-    }
-    export class FormController extends Controller {
-        onInitialize() {
-            //this.setRootElement(document.querySelector('#myButton'));
-            //this.getRootElement().addEventListener('click', this.sendAction);
-        }
-        sendAction() {
-            console.log('OOOOK');
-            this.view.setVar('alert', 'OK');
-            //this.view.render();
+        byeAction() {
+            console.log('on bye action');
+            this.view.setVar('say_bye','goodbye !!');
         }
     }
 }
 
 
 let di = new Di();
-di.set('dispatcher', new Dispatcher(), true);
-di.set('view', function() {
-    let view = new View(document.querySelector('#myView'));
-    view.setViewEngine(new Handlebars());
-    return view;
+di.set('viewEngine', function() {
+    let engine = new Mustache();
+    return engine;
 }, true);
-di.set('my-module', MyApp, true);
-new Application(di).handle();
 
+/*di.set('view', function() {
+    let view = new View();
+    return view ;
+}, true);*/
+
+let app = new Application(di);
+app.setDefaultModule(MyApp);
+app.handle();

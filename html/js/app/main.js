@@ -3,7 +3,7 @@ var __extends = (this && this.__extends) || function (d, b) {
     function __() { this.constructor = d; }
     d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
 };
-define(["require", "exports", '../jess/Di', '../jess/Mvc/View', '../jess/Mvc/View/Engine/Handlebars', '../jess/Mvc/Dispatcher', '../jess/Mvc/Controller', '../jess/Mvc/Application'], function (require, exports, Di_1, View_1, Handlebars_1, Dispatcher_1, Controller_1, Application_1) {
+define(["require", "exports", '../jess/Di', '../jess/Mvc/View/Engine/Mustache', '../jess/Mvc/Controller', '../jess/Mvc/Application'], function (require, exports, Di_1, Mustache_1, Controller_1, Application_1) {
     "use strict";
     var MyApp;
     (function (MyApp) {
@@ -12,59 +12,35 @@ define(["require", "exports", '../jess/Di', '../jess/Mvc/View', '../jess/Mvc/Vie
             function IndexController() {
                 _super.apply(this, arguments);
             }
-            IndexController.prototype.onInitialize = function () {
-            };
             IndexController.prototype.indexAction = function () {
-                console.log('on index action', this.view);
-                this.view.setVar('name', 'John');
-                var n = this.view.getVar('number') || 3;
-                this.view.setVar('number_mails', n);
-                /*document.querySelector('#myButton').addEventListener('click', function(e) {
-                    _this.dispatcher.forward('index','index');
-                });*/
-                //this.view.render();
+                console.log('> index action');
+                this.view.setVars({
+                    name: '[enter your name please]',
+                }, true);
             };
-            IndexController.prototype.readAction = function () {
-                console.log('on read action');
-                var n = this.view.getVar('number_mails');
-                if (typeof n === 'number') {
-                    if (n == 1) {
-                        this.view.setVar('number_mails', 'nothing');
-                    }
-                    else {
-                        this.view.setVar('number_mails', --n);
-                    }
-                }
-                //this.view.render();
+            IndexController.prototype.changeNameAction = function () {
+                console.log('> change action');
+                console.log(arguments);
+                //this.view.setVar('name', e.target.value);
+            };
+            IndexController.prototype.byeAction = function () {
+                console.log('on bye action');
+                this.view.setVar('say_bye', 'goodbye !!');
             };
             return IndexController;
         }(Controller_1.Controller));
         MyApp.IndexController = IndexController;
-        var FormController = (function (_super) {
-            __extends(FormController, _super);
-            function FormController() {
-                _super.apply(this, arguments);
-            }
-            FormController.prototype.onInitialize = function () {
-                //this.setRootElement(document.querySelector('#myButton'));
-                //this.getRootElement().addEventListener('click', this.sendAction);
-            };
-            FormController.prototype.sendAction = function () {
-                console.log('OOOOK');
-                this.view.setVar('alert', 'OK');
-                //this.view.render();
-            };
-            return FormController;
-        }(Controller_1.Controller));
-        MyApp.FormController = FormController;
     })(MyApp = exports.MyApp || (exports.MyApp = {}));
     var di = new Di_1.Di();
-    di.set('dispatcher', new Dispatcher_1.Dispatcher(), true);
-    di.set('view', function () {
-        var view = new View_1.View(document.querySelector('#myView'));
-        view.setViewEngine(new Handlebars_1.Handlebars());
-        return view;
+    di.set('viewEngine', function () {
+        var engine = new Mustache_1.Mustache();
+        return engine;
     }, true);
-    di.set('my-module', MyApp, true);
-    new Application_1.Application(di).handle();
+    /*di.set('view', function() {
+        let view = new View();
+        return view ;
+    }, true);*/
+    var app = new Application_1.Application(di);
+    app.setDefaultModule(MyApp);
+    app.handle();
 });

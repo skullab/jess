@@ -9,15 +9,12 @@ export class ViewManager implements InjectionAwareInterface {
 
     protected _di: DiInterface;
     protected _views: ArrayList;
-    protected _dataViewPrefix: string;
 
     constructor(di: DiInterface, views?: {}[]) {
         this.setDi(di);
-        if (this._di.has('application')) {
-            this._dataViewPrefix = this._di.get('application').getDataApplicationPrefix();
-        }
         this._views = new ArrayList(views);
     }
+
     viewExists(index: any): boolean {
         if (typeof index === 'number') {
             return this.getView(index) !== undefined;
@@ -37,6 +34,7 @@ export class ViewManager implements InjectionAwareInterface {
         }
         return false;
     }
+
     getViewByName(name: string): View {
         for (let v of this.toArray()) {
             if (v.getName() == name) {
@@ -45,51 +43,30 @@ export class ViewManager implements InjectionAwareInterface {
         }
         return null;
     }
-    getView(index: number): View {
-        return this._views.get(index);
-    }
-    addView(view: View): void {
-        this._views.add(view);
-    }
-    addAllDataView(query: string = '') {
-        let n = this.getAllDataView();
-        for (let i = 0; i < n.length; i++) {
-            let e = <HTMLElement>n[i];
-            let v = new View(e);
-            v.setName(e.dataset[StringHelper.uncapitalize(StringHelper.camelize(this._dataViewPrefix + ' view'))]);
-            let viewEngine = this.getDi().get('viewEngine');
-            if (viewEngine) v.setViewEngine(viewEngine);
-            this.addView(v);
+    getView(index: any): View {
+        if (typeof index === 'number') {
+            return this._views.get(index);
+        } else if (typeof index === 'string') {
+            return this.getViewByName(index);
         }
     }
+    addView(view: View): void {
+        if(this._di.has('viewEngine')){
+         view.setViewEngine(this._di.get('viewEngine'));   
+        }
+        this._views.add(view);
+    }
+    
     removeView(view: View): void {
         this._views.remove(view);
     }
-    renderView(index: number) {
-        let v = this._views.get(index);
-        if (v && v instanceof View) {
-            v.render();
-        }
+    renderView(index: any) {
+        this.getView(index).render();
     }
     renderAll() {
         for (let v of this.toArray()) {
             v.render();
         }
-    }
-    setDataViewPrefix(prefix: string) {
-        this._dataViewPrefix = prefix;
-    }
-    getDataViewPrefix(): string {
-        return this._dataViewPrefix;
-    }
-    getDataView(name: string) {
-        let prefix = this._dataViewPrefix ? this._dataViewPrefix + '-' : '';
-        return <Element>document.querySelector('[data-' + prefix + 'view="' + name + '"]');
-    }
-    getAllDataView(query: string = '') {
-        let prefix = this._dataViewPrefix !== '' ? this._dataViewPrefix + '-' : '';
-        query += '[data-' + prefix + 'view]';
-        return <NodeList>document.querySelectorAll(query);
     }
     toArray(): View[] {
         return <View[]>this._views.toArray();

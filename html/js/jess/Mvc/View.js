@@ -86,6 +86,12 @@ define(["require", "exports"], function (require, exports) {
         };
         View.prototype.start = function () { };
         View.prototype.finish = function () { };
+        View.prototype.query = function (q) {
+            return this._rootElement.querySelector(q);
+        };
+        View.prototype.queryAll = function (q) {
+            return this._rootElement.querySelectorAll(q);
+        };
         /**
         * Set the dependency injection container.
         * @param {object} di : The dependency injection container.

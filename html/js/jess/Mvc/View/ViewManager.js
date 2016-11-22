@@ -1,9 +1,11 @@
-define(["require", "exports", '../View', '../../util/ArrayList'], function (require, exports, View_1, ArrayList_1) {
+define(["require", "exports", '../View', '../../util/ArrayList', '../../util/StringHelper'], function (require, exports, View_1, ArrayList_1, StringHelper_1) {
     "use strict";
     var ViewManager = (function () {
         function ViewManager(di, views) {
-            this._dataViewPrefix = '';
             this.setDi(di);
+            if (this._di.has('application')) {
+                this._dataViewPrefix = this._di.get('application').getDataApplicationPrefix();
+            }
             this._views = new ArrayList_1.ArrayList(views);
         }
         ViewManager.prototype.viewExists = function (index) {
@@ -47,7 +49,7 @@ define(["require", "exports", '../View', '../../util/ArrayList'], function (requ
             for (var i = 0; i < n.length; i++) {
                 var e = n[i];
                 var v = new View_1.View(e);
-                v.setName(e.dataset[this._dataViewPrefix + 'View']);
+                v.setName(e.dataset[StringHelper_1.StringHelper.uncapitalize(StringHelper_1.StringHelper.camelize(this._dataViewPrefix + ' view'))]);
                 var viewEngine = this.getDi().get('viewEngine');
                 if (viewEngine)
                     v.setViewEngine(viewEngine);
@@ -76,7 +78,7 @@ define(["require", "exports", '../View', '../../util/ArrayList'], function (requ
             return this._dataViewPrefix;
         };
         ViewManager.prototype.getDataView = function (name) {
-            var prefix = this._dataViewPrefix !== '' ? this._dataViewPrefix + '-' : '';
+            var prefix = this._dataViewPrefix ? this._dataViewPrefix + '-' : '';
             return document.querySelector('[data-' + prefix + 'view="' + name + '"]');
         };
         ViewManager.prototype.getAllDataView = function (query) {

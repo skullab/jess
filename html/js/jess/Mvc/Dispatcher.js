@@ -4,6 +4,8 @@ define(["require", "exports", './Controller', '../util/StringHelper'], function 
         function Dispatcher() {
             this.setActionSuffix('Action');
             this.setControllerSuffix('Controller');
+            this.setControllerName('index');
+            this.setActionName('index');
         }
         Dispatcher.prototype.setModule = function (m) {
             this._activeModule = m;
@@ -56,14 +58,9 @@ define(["require", "exports", './Controller', '../util/StringHelper'], function 
                     var _controllerInstance = typeof _module[_controllerName] === 'function' ? new _module[_controllerName]() : _module[_controllerName];
                     if (_controllerInstance instanceof Controller_1.Controller) {
                         _controllerInstance.setDi(this.getDi());
-                        var _s = this.getDi().getServices();
-                        for (var i in _s) {
-                            _controllerInstance[i] = _s[i];
-                        }
+                        _controllerInstance.onInitialize();
                     }
                     var _actionName = StringHelper_1.StringHelper.camelize(this.getActionName()) + this.getActionSuffix();
-                    //console.log(_actionName)
-                    //console.log(_controllerInstance);
                     if (typeof _controllerInstance[_actionName] === 'function') {
                         _controllerInstance[_actionName].apply(_controllerInstance, this.getParams());
                     }
@@ -76,12 +73,14 @@ define(["require", "exports", './Controller', '../util/StringHelper'], function 
                 }
                 this._dispatched = true;
             }
+            //this._di.get('view').render();
         };
         Dispatcher.prototype.forward = function (controller, action, params) {
             this._activeControllerName = controller;
             this._activeActionName = action;
             this._activeParams = params;
-            this.dispatch();
+            //this.dispatch();
+            this._di.get('application').loop();
         };
         Dispatcher.prototype.isFinished = function () {
             return this._dispatched;
@@ -92,7 +91,7 @@ define(["require", "exports", './Controller', '../util/StringHelper'], function 
         */
         Dispatcher.prototype.setDi = function (di) {
             this._di = di;
-            this._di.set('dispatcher', this, true);
+            //this._di.set('dispatcher', this, true);
         };
         /**
          * Returns the dependecy injection container.

@@ -18,6 +18,8 @@ export class Dispatcher implements DispatcherInterface, InjectionAwareInterface 
     constructor() {
         this.setActionSuffix('Action');
         this.setControllerSuffix('Controller');
+        this.setControllerName('index');
+        this.setActionName('index');
     }
     setModule(m: {}): void {
         this._activeModule = m;
@@ -68,23 +70,16 @@ export class Dispatcher implements DispatcherInterface, InjectionAwareInterface 
                 throw new Error("No Module declared");
             }
             let _controllerName = StringHelper.capitalize(StringHelper.camelize(this.getControllerName())) + this.getControllerSuffix();
-
+            
             if (_module.hasOwnProperty(_controllerName)) {
                 let _controllerInstance = typeof _module[_controllerName] === 'function' ? new _module[_controllerName]() : _module[_controllerName];
 
                 if (_controllerInstance instanceof Controller) {
-
                     _controllerInstance.setDi(this.getDi());
-                    let _s = this.getDi().getServices();
-                    for (let i in _s) {
-                        _controllerInstance[i] = _s[i] ;
-                    }
+                    _controllerInstance.onInitialize();
                 }
 
                 let _actionName = StringHelper.camelize(this.getActionName()) + this.getActionSuffix();
-
-                //console.log(_actionName)
-                //console.log(_controllerInstance);
 
                 if (typeof _controllerInstance[_actionName] === 'function') {
 
@@ -99,12 +94,14 @@ export class Dispatcher implements DispatcherInterface, InjectionAwareInterface 
 
             this._dispatched = true;
         }
+        //this._di.get('view').render();
     }
     forward(controller: string, action: string, params?: {}[]) {
         this._activeControllerName = controller;
         this._activeActionName = action;
         this._activeParams = params;
-        this.dispatch();
+        //this.dispatch();
+        this._di.get('application').loop();
     }
     isFinished(): boolean {
         return this._dispatched;
@@ -115,7 +112,7 @@ export class Dispatcher implements DispatcherInterface, InjectionAwareInterface 
     */
     setDi(di: DiInterface): void {
         this._di = di;
-        this._di.set('dispatcher', this, true);
+        //this._di.set('dispatcher', this, true);
     }
     /**
      * Returns the dependecy injection container.

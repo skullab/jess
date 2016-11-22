@@ -1,4 +1,6 @@
 export interface DispatcherInterface {
+    setModule(m:{}):void;
+    getModule():any;
     setControllerSuffix(suffix:string):void;
     getControllerSuffix():string;
     setControllerName(name:string):void;

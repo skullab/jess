@@ -53,6 +53,9 @@ define(["require", "exports"], function (require, exports) {
         View.prototype.getVar = function (name) {
             return this._variables[name];
         };
+        View.prototype.getVars = function () {
+            return this._variables;
+        };
         View.prototype.setPartials = function (partials) {
             this._partials = partials;
         };
@@ -72,7 +75,7 @@ define(["require", "exports"], function (require, exports) {
         View.prototype.render = function (partials) {
             this.checkEngine();
             partials = partials ? partials : this.getPartials();
-            //console.log(partials);
+            //this.setTemplate(this._rootElement.innerHTML);
             this.setContent(this._engine.render(this.getTemplate(), this._variables, partials));
         };
         View.prototype.setViewEngine = function (engine) {

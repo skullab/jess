@@ -8,7 +8,7 @@ export class View implements ViewInterface, InjectionAwareInterface {
     protected _engine: ViewEngineInterface = null;
     protected _template: string = '';
     protected _content: string = '';
-    protected _parsedContent:any;
+    protected _parsedContent: any;
     protected _variables: {} = {};
     protected _partials: {};
     protected _rootElement: Element;
@@ -36,7 +36,7 @@ export class View implements ViewInterface, InjectionAwareInterface {
         this._template = template.replace(/&gt;/g, '>');
     }
     getTemplate(): string {
-        return this._template ;
+        return this._template;
     }
     setContent(content: string): void {
         this._rootElement.innerHTML = this._content = content;
@@ -60,6 +60,9 @@ export class View implements ViewInterface, InjectionAwareInterface {
     getVar(name: string): any {
         return this._variables[name];
     }
+    getVars(): {} {
+        return this._variables ;
+    }
     setPartials(partials: {}): void {
         this._partials = partials;
     }
@@ -79,7 +82,7 @@ export class View implements ViewInterface, InjectionAwareInterface {
     render(partials?: {}): void {
         this.checkEngine();
         partials = partials ? partials : this.getPartials();
-        //console.log(partials);
+        //this.setTemplate(this._rootElement.innerHTML);
         this.setContent(this._engine.render(this.getTemplate(), this._variables, partials));
     }
     setViewEngine(engine: ViewEngineInterface): void {

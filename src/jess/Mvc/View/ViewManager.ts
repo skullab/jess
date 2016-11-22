@@ -3,15 +3,19 @@ import {DiInterface} from '../../Di/DiInterface';
 import {View} from '../View';
 import {ViewInterface} from '../View/ViewInterface';
 import {ArrayList} from '../../util/ArrayList';
+import {StringHelper} from '../../util/StringHelper';
 
 export class ViewManager implements InjectionAwareInterface {
 
     protected _di: DiInterface;
     protected _views: ArrayList;
-    protected _dataViewPrefix: string = '';
+    protected _dataViewPrefix: string;
 
     constructor(di: DiInterface, views?: {}[]) {
         this.setDi(di);
+        if (this._di.has('application')) {
+            this._dataViewPrefix = this._di.get('application').getDataApplicationPrefix();
+        }
         this._views = new ArrayList(views);
     }
     viewExists(index: any): boolean {
@@ -52,7 +56,7 @@ export class ViewManager implements InjectionAwareInterface {
         for (let i = 0; i < n.length; i++) {
             let e = <HTMLElement>n[i];
             let v = new View(e);
-            v.setName(e.dataset[this._dataViewPrefix + 'View']);
+            v.setName(e.dataset[StringHelper.uncapitalize(StringHelper.camelize(this._dataViewPrefix + ' view'))]);
             let viewEngine = this.getDi().get('viewEngine');
             if (viewEngine) v.setViewEngine(viewEngine);
             this.addView(v);
@@ -79,7 +83,7 @@ export class ViewManager implements InjectionAwareInterface {
         return this._dataViewPrefix;
     }
     getDataView(name: string) {
-        let prefix = this._dataViewPrefix !== '' ? this._dataViewPrefix + '-' : '';
+        let prefix = this._dataViewPrefix ? this._dataViewPrefix + '-' : '';
         return <Element>document.querySelector('[data-' + prefix + 'view="' + name + '"]');
     }
     getAllDataView(query: string = '') {

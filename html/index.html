@@ -1,41 +1,40 @@
 <!doctype html>
 <html class="no-js" lang="">
 
-    <head>
-        <meta charset="utf-8">
-        <meta http-equiv="x-ua-compatible" content="ie=edge">
-        <title>jess</title>
-        <meta name="description" content="">
-        <meta name="viewport" content="width=device-width, initial-scale=1">
-		
-        <link rel="apple-touch-icon" href="apple-touch-icon.png">
-        <!-- Place favicon.ico in the root directory -->
+<head>
+<meta charset="utf-8">
+<meta http-equiv="x-ua-compatible" content="ie=edge">
+<title>jess</title>
+<meta name="description" content="">
+<meta name="viewport" content="width=device-width, initial-scale=1">
 
-        <link rel="stylesheet" href="css/normalize.css">
-        <link rel="stylesheet" href="css/main.css">
-       	
-    </head>
-    
-    <body>
-        <!--[if lt IE 8]>
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<!-- Place favicon.ico in the root directory -->
+
+<link rel="stylesheet" href="css/font-awesome.min.css">
+<link rel="stylesheet" href="css/bulma.css">
+
+</head>
+
+<body>
+	<!--[if lt IE 8]>
             <p class="browserupgrade">You are using an <strong>outdated</strong> browser. Please <a href="http://browsehappy.com/">upgrade your browser</a> to improve your experience.</p>
         <![endif]-->
-        
-        <!-- Add your site or application content here -->
-        
-        <div data-view="name-view" active>
-        	<p>Welcome <b>{{ name }}</b> {{ say_bye }}</p>
-        </div>
-		
-		<div data-view="form-view">
-			<form>
-				<input type="text" 
-					data-listener='{"event":"keyup","action":"changeName","view":"name-view","params":"test,78"}'
-				/>
-			</form>
-		</div>
-		
-		
-		<script type="text/javascript" data-main="js/app/boot.js" src="js/vendor/require.min.js"></script>
-    </body>
+
+	<!-- Add your site or application content here -->
+	
+	<div data-view="name-view">
+		<label class="label">Email</label>
+		<p class="control has-icon has-icon-right">
+			<input class="input {{ c }}" type="text" placeholder="Email input" 
+					data-event="keyup" data-action="validate" data-params="email"> 
+			<i class="fa"></i><span class="help">{{ message }}</span>
+		</p>
+	</div>
+
+	
+
+	<script type="text/javascript" data-main="js/app/boot.js"
+		src="js/vendor/require.min.js"></script>
+</body>
 </html>

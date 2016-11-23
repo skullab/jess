@@ -32,7 +32,7 @@ export class Mustache implements ViewEngineInterface {
      * This is here for backwards compatibility with 0.4.x.,
      */
     to_html(template: string, view: any, partials?: any, send?: any): any {
-        return _mustache.to_html(template,view,partials,send);
+        return _mustache.to_html(template, view, partials, send);
     }
     /**
     * Parse the template view.
@@ -44,6 +44,8 @@ export class Mustache implements ViewEngineInterface {
     */
     parse(template: string, tags?: string[]): string {
         return _mustache.parse(template, tags);
+            //.filter(function(v) { return v[0] === 'name' })
+            //.map(function(v) { return v[1]; });
     }
 
     /**

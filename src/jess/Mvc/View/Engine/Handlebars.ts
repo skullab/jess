@@ -27,6 +27,7 @@ export class Handlebars implements ViewEngineInterface {
      */
     render(template: string, variables: {}, partials: {} = {}): string {
         _handlebars.registerPartial(partials);
+        //let compiled = this._templateSpec ? _handlebars.template(this._templateSpec) : _handlebars.compile(template);
         let compiled = _handlebars.compile(template);
         return compiled(variables);
     }

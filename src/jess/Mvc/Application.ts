@@ -128,33 +128,36 @@ export class Application implements ApplicationInterface, InjectionAwareInterfac
         let _query = '[data-' + prefix + ']';
         let _dataName = StringHelper.camelize(prefix);
         let _listeners = root.querySelectorAll(_query);
+
         for (let i = 0; i < _listeners.length; i++) {
             let el = <HTMLElement>_listeners[i];
             let _definition = el.dataset[_dataName];
             let _obj = JSON.parse(_definition);
+            _obj = Array.isArray(_obj) ? _obj : [_obj];
 
-            let _event = _obj.event;
-            let _module = _obj.module;
-            let _controller = _obj.controller;
-            let _action = _obj.action
-            
-            let _paramsString = _obj.params ;
-            let _params = this._resolveParams(_paramsString);
-            //console.log(_params)
-            let _view = _obj.view;
-            
-            let _t = this;
-            
-            let _handler = function(e) {
-                console.log('fire event > ' + _event);
-                if (_view) _t.setActiveView(_view);
-                //_params.shift();
-                _params.unshift(e);
-                //_params.shift();
-                _t.handle(_module, _controller, _action, _params);
-                el.removeEventListener(_event, _handler, false);
+            for (let _o of _obj) {
+
+                let _event = _o.event;
+                let _module = _o.module;
+                let _controller = _o.controller;
+                let _action = _o.action
+
+                let _paramsString = _o.params;
+                let _params = this._resolveParams(_paramsString);
+                let _view = _o.view;
+
+                let _t = this;
+
+                let _handler = function(e) {
+                    console.log('fire event > ' + _event);
+                    if (_view) _t.setActiveView(_view);
+                    _params.unshift(e);
+                    _t.handle(_module, _controller, _action, _params);
+                    el.removeEventListener(_event, _handler, false);
+                    e.stopPropagation();
+                }
+                el.addEventListener(_event, _handler);
             }
-            el.addEventListener(_event, _handler);
         }
     }
     protected _findEvents(root?: any) {
@@ -192,7 +195,7 @@ export class Application implements ApplicationInterface, InjectionAwareInterfac
             let _handler = function(e) {
                 console.log('fire event > ' + el.dataset[_dataName]);
                 if (_view) _t.setActiveView(_view);
-                _params.push(e);
+                _params.unshift(e);
                 _t.handle(_module, _controller, _action, _params);
                 el.removeEventListener(el.dataset[_dataName], _handler, false);
             }
@@ -256,6 +259,7 @@ export class Application implements ApplicationInterface, InjectionAwareInterfac
     }
     protected beforeHandle(mod?: string, controller?: string, action?: string, params?: {}[]) {
         //console.log('before handle > setting defaults');
+        this.getActiveView().parse();
         this.setDefaultModule(mod);
         this.setDefaultController(controller);
         this.setDefaultAction(action);

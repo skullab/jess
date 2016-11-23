@@ -13,22 +13,25 @@ import {StringHelper} from '../jess/util/StringHelper';
 
 export module MyApp {
     export class IndexController extends Controller {
-       
+        
         indexAction() {
-            console.log('> index action');
-            this.view.setVars({
-                name: '[enter your name please]',
-            }, true);
-            
+            this.view.setVar('message','please enter email');
         }
-        changeNameAction() {
-            console.log('> change action');
-            console.log(arguments);
-            //this.view.setVar('name', e.target.value);
-        }
-        byeAction() {
-            console.log('on bye action');
-            this.view.setVar('say_bye','goodbye !!');
+        validateAction(e, kind) {
+            this.view.setVar('c',e.target.value);
+            this.view.setVar('message',e.target.value);
+            if (kind == 'foo') {
+                console.log('validate email');
+                let value = e.target.value;
+                var re = /^(([^<>()\[\]\\.,;:\s@"]+(\.[^<>()\[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;
+                if (re.test(value)) {
+                    console.log('valid email');
+                    this.view.setVar('message','valid email');
+                }else{
+                    console.log('invalid email');
+                }
+            }
+            //this.view.disable();
         }
     }
 }

@@ -27,6 +27,7 @@ define(["require", "exports", 'handlebars'], function (require, exports, _handle
         Handlebars.prototype.render = function (template, variables, partials) {
             if (partials === void 0) { partials = {}; }
             _handlebars.registerPartial(partials);
+            //let compiled = this._templateSpec ? _handlebars.template(this._templateSpec) : _handlebars.compile(template);
             var compiled = _handlebars.compile(template);
             return compiled(variables);
         };

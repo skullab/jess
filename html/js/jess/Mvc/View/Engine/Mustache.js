@@ -39,6 +39,8 @@ define(["require", "exports", 'mustache'], function (require, exports, _mustache
         */
         Mustache.prototype.parse = function (template, tags) {
             return _mustache.parse(template, tags);
+            //.filter(function(v) { return v[0] === 'name' })
+            //.map(function(v) { return v[1]; });
         };
         /**
          * Render the template view.

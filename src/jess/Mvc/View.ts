@@ -2,11 +2,13 @@ import {ViewInterface} from './View/ViewInterface';
 import {ViewEngineInterface} from './View/Engine/ViewEngineInterface';
 import {InjectionAwareInterface} from '../Di/InjectionAwareInterface';
 import {DiInterface} from '../Di/DiInterface';
+import {Util} from '../util/Util';
 
 export class View implements ViewInterface, InjectionAwareInterface {
 
     protected _engine: ViewEngineInterface = null;
     protected _template: string = '';
+    protected _templateElement: Element;
     protected _content: string = '';
     protected _parsedContent: any;
     protected _variables: {} = {};
@@ -14,10 +16,21 @@ export class View implements ViewInterface, InjectionAwareInterface {
     protected _rootElement: Element;
     protected _di = null;
     protected _name: string;
+    protected _enable: boolean = true;
+    protected _isRendered: boolean = false;
+    protected _dataBinding: {}[] = [];
+    protected _guid: any;
 
     constructor(element: Element = document.documentElement) {
+        this._guid = Util.guid();
         this.setRootElement(element);
         return this;
+    }
+    enable(): void {
+        this._enable = true;
+    }
+    disable(): void {
+        this._enable = false;
     }
     setName(name: string) {
         this._name = name;
@@ -32,14 +45,105 @@ export class View implements ViewInterface, InjectionAwareInterface {
     getRootElement(): Element {
         return this._rootElement;
     }
+    setObserver(target) {
+        let _this = this ;
+        let observer = new MutationObserver(function(mutations) {
+
+            mutations.forEach(function(mutation) {
+                console.log('>>> observer');
+                let _old = mutation.removedNodes;
+                let _new = mutation.addedNodes;
+                for (let i in _old) {
+                    if (_old[i] !== _new[i]) {
+                        console.log('    find differences..');
+                        console.log('node type :', _new[i].nodeType);
+                        console.log(_old[i], 'vs', _new[i]);
+                        if (_new[i].nodeType == 1) {
+                            console.log('    check innerHTML');
+                            let _oldEl = <Element>_old[i];
+                            let _newEl = <Element>_new[i];
+                            console.log(_oldEl.innerHTML, 'vs', _newEl.innerHTML);
+                            if (_new[i].hasChildNodes()) {
+                                let _newNodes = _new[i].childNodes;
+                                let _oldNodes = _old[i].childNodes;
+                                for (let _i in _newNodes) {
+                                    console.log(_oldNodes[_i], 'vs', _newNodes[_i]);
+                                    if (_newNodes[_i].nodeType == 1) {
+                                        console.log('    >>>>>>>>>>> check innerHTML');
+                                        console.log(_oldNodes[_i].innerHTML, 'vs', _newNodes[_i].innerHTML);
+                                        if (_oldNodes[_i].innerHTML != _newNodes[_i].innerHTML) {
+                                            console.log('       FIND IT !');
+                                            console.log('coord',i,_i);
+                                            _this._rootElement.childNodes[i].childNodes[_i].innerHTML = _newNodes[_i].innerHTML ;
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+        });
+
+        // configuration of the observer:
+        let config = {
+            attributes: true,
+            childList: true,
+            characterData: true,
+            subtree: true,
+            attributeOldValue: true,
+            characterDataOldValue: true
+        };
+
+        // pass in the target node, as well as the observer options
+        //console.log(target);
+        observer.observe(target, config);
+    }
+
     setTemplate(template: string): void {
+
         this._template = template.replace(/&gt;/g, '>');
+        this._templateElement = document.createElement('div');
+        this._templateElement.innerHTML = this._template;
+        this.setObserver(this._templateElement);
+
+        /*for (let i = 0; i < this._templateElement.childNodes.length; i++) {
+            let node = this._templateElement.childNodes[i]
+            this.prepareObserver(node);
+        }*/
+        /*let p = /\{\{\s*[a-zA-Z0-9_]*\s*\}\}/ig;
+        let m;
+        let _m = '';
+        let _l = this._template.length;
+        let _i = 0;
+        while (m = p.exec(this._template)) {
+            let _v = m[0].replace(/\{\{/g, '').replace(/\}\}/g, '').trim();
+            _m += m.input.substring(_i, _i = m.index) + '<div id="' + this._guid + ':' + _v + '">' + m[0] + '</div>';
+            _i += m[0].length;
+        }
+        _m += template.substring(_i, _l);
+        
+        this._template = _m ;*/
+
     }
     getTemplate(): string {
         return this._template;
     }
     setContent(content: string): void {
-        this._rootElement.innerHTML = this._content = content;
+        this._content = content;
+        /*if (!this._isRendered) {
+            //this._rootElement.innerHTML = this._content;
+            console.log(this._rootElement.innerHTML);
+            this._isRendered = true;
+            return;
+        }
+        if (this._rootElement.innerHTML != this._content) {
+            console.log('render > bind');
+            console.log(this._rootElement.innerHTML);
+            console.log(this._content);
+        }*/
+        this._templateElement.innerHTML = this._content;
+        console.log(this._templateElement.innerHTML);
     }
     getContent(): string {
         return this._content;
@@ -80,9 +184,9 @@ export class View implements ViewInterface, InjectionAwareInterface {
         //console.log(this._parsedContent);
     }
     render(partials?: {}): void {
+        if (!this._enable) return;
         this.checkEngine();
         partials = partials ? partials : this.getPartials();
-        //this.setTemplate(this._rootElement.innerHTML);
         this.setContent(this._engine.render(this.getTemplate(), this._variables, partials));
     }
     setViewEngine(engine: ViewEngineInterface): void {

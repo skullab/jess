@@ -13,19 +13,24 @@ define(["require", "exports", '../jess/Di', '../jess/Mvc/View/Engine/Mustache', 
                 _super.apply(this, arguments);
             }
             IndexController.prototype.indexAction = function () {
-                console.log('> index action');
-                this.view.setVars({
-                    name: '[enter your name please]',
-                }, true);
+                this.view.setVar('message', 'please enter email');
             };
-            IndexController.prototype.changeNameAction = function () {
-                console.log('> change action');
-                console.log(arguments);
-                //this.view.setVar('name', e.target.value);
-            };
-            IndexController.prototype.byeAction = function () {
-                console.log('on bye action');
-                this.view.setVar('say_bye', 'goodbye !!');
+            IndexController.prototype.validateAction = function (e, kind) {
+                this.view.setVar('c', e.target.value);
+                this.view.setVar('message', e.target.value);
+                if (kind == 'foo') {
+                    console.log('validate email');
+                    var value = e.target.value;
+                    var re = /^(([^<>()\[\]\\.,;:\s@"]+(\.[^<>()\[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;
+                    if (re.test(value)) {
+                        console.log('valid email');
+                        this.view.setVar('message', 'valid email');
+                    }
+                    else {
+                        console.log('invalid email');
+                    }
+                }
+                //this.view.disable();
             };
             return IndexController;
         }(Controller_1.Controller));

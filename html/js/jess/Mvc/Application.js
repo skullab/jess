@@ -113,26 +113,31 @@ define(["require", "exports", './Controller', './View', './Dispatcher', '../util
                 var el = _listeners[i];
                 var _definition = el.dataset[_dataName];
                 var _obj = JSON.parse(_definition);
-                var _event = _obj.event;
-                var _module = _obj.module;
-                var _controller = _obj.controller;
-                var _action = _obj.action;
-                var _paramsString = _obj.params;
-                var _params = this_1._resolveParams(_paramsString);
-                //console.log(_params)
-                var _view = _obj.view;
-                var _t = this_1;
-                var _handler = function (e) {
-                    console.log('fire event > ' + _event);
-                    if (_view)
-                        _t.setActiveView(_view);
-                    //_params.shift();
-                    _params.unshift(e);
-                    //_params.shift();
-                    _t.handle(_module, _controller, _action, _params);
-                    el.removeEventListener(_event, _handler, false);
+                _obj = Array.isArray(_obj) ? _obj : [_obj];
+                var _loop_2 = function(_o) {
+                    var _event = _o.event;
+                    var _module = _o.module;
+                    var _controller = _o.controller;
+                    var _action = _o.action;
+                    var _paramsString = _o.params;
+                    var _params = this_1._resolveParams(_paramsString);
+                    var _view = _o.view;
+                    var _t = this_1;
+                    var _handler = function (e) {
+                        console.log('fire event > ' + _event);
+                        if (_view)
+                            _t.setActiveView(_view);
+                        _params.unshift(e);
+                        _t.handle(_module, _controller, _action, _params);
+                        el.removeEventListener(_event, _handler, false);
+                        e.stopPropagation();
+                    };
+                    el.addEventListener(_event, _handler);
                 };
-                el.addEventListener(_event, _handler);
+                for (var _i = 0, _obj_1 = _obj; _i < _obj_1.length; _i++) {
+                    var _o = _obj_1[_i];
+                    _loop_2(_o);
+                }
             };
             var this_1 = this;
             for (var i = 0; i < _listeners.length; i++) {
@@ -152,7 +157,7 @@ define(["require", "exports", './Controller', './View', './Dispatcher', '../util
             var _query = '[data-' + prefix + ']';
             var _dataName = StringHelper_1.StringHelper.camelize(prefix);
             var _events = root.querySelectorAll(_query);
-            var _loop_2 = function(i) {
+            var _loop_3 = function(i) {
                 var el = _events[i];
                 var _module = el.dataset[StringHelper_1.StringHelper.camelize(modPrefix)];
                 var _controller = el.dataset[StringHelper_1.StringHelper.camelize(cPrefix)];
@@ -166,7 +171,7 @@ define(["require", "exports", './Controller', './View', './Dispatcher', '../util
                     console.log('fire event > ' + el.dataset[_dataName]);
                     if (_view)
                         _t.setActiveView(_view);
-                    _params.push(e);
+                    _params.unshift(e);
                     _t.handle(_module, _controller, _action, _params);
                     el.removeEventListener(el.dataset[_dataName], _handler, false);
                 };
@@ -174,7 +179,7 @@ define(["require", "exports", './Controller', './View', './Dispatcher', '../util
             };
             var this_2 = this;
             for (var i = 0; i < _events.length; i++) {
-                _loop_2(i);
+                _loop_3(i);
             }
         };
         Application.prototype.registerModules = function (modules, merge) {
@@ -233,6 +238,7 @@ define(["require", "exports", './Controller', './View', './Dispatcher', '../util
         };
         Application.prototype.beforeHandle = function (mod, controller, action, params) {
             //console.log('before handle > setting defaults');
+            this.getActiveView().parse();
             this.setDefaultModule(mod);
             this.setDefaultController(controller);
             this.setDefaultAction(action);

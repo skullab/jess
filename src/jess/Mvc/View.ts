@@ -3,6 +3,7 @@ import {ViewEngineInterface} from './View/Engine/ViewEngineInterface';
 import {InjectionAwareInterface} from '../Di/InjectionAwareInterface';
 import {DiInterface} from '../Di/DiInterface';
 import {Util} from '../util/Util';
+import {TemplateObserver} from './View/TemplateObserver' ;
 
 export class View implements ViewInterface, InjectionAwareInterface {
 
@@ -20,7 +21,8 @@ export class View implements ViewInterface, InjectionAwareInterface {
     protected _isRendered: boolean = false;
     protected _dataBinding: {}[] = [];
     protected _guid: any;
-
+    protected _observer:TemplateObserver;
+    
     constructor(element: Element = document.documentElement) {
         this._guid = Util.guid();
         this.setRootElement(element);
@@ -45,8 +47,10 @@ export class View implements ViewInterface, InjectionAwareInterface {
     getRootElement(): Element {
         return this._rootElement;
     }
-    setObserver(target) {
-        let _this = this ;
+    setObserver(target:Element) {
+        this._observer = new TemplateObserver(target,this._rootElement);
+        this._observer.observe();
+        /*let _this = this ;
         let observer = new MutationObserver(function(mutations) {
 
             mutations.forEach(function(mutation) {
@@ -97,7 +101,7 @@ export class View implements ViewInterface, InjectionAwareInterface {
 
         // pass in the target node, as well as the observer options
         //console.log(target);
-        observer.observe(target, config);
+        observer.observe(target, config);*/
     }
 
     setTemplate(template: string): void {
@@ -131,19 +135,8 @@ export class View implements ViewInterface, InjectionAwareInterface {
     }
     setContent(content: string): void {
         this._content = content;
-        /*if (!this._isRendered) {
-            //this._rootElement.innerHTML = this._content;
-            console.log(this._rootElement.innerHTML);
-            this._isRendered = true;
-            return;
-        }
-        if (this._rootElement.innerHTML != this._content) {
-            console.log('render > bind');
-            console.log(this._rootElement.innerHTML);
-            console.log(this._content);
-        }*/
         this._templateElement.innerHTML = this._content;
-        console.log(this._templateElement.innerHTML);
+        //console.log(this._templateElement.innerHTML);
     }
     getContent(): string {
         return this._content;

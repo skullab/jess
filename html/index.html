@@ -22,17 +22,23 @@
         <![endif]-->
 
 	<!-- Add your site or application content here -->
-	
-	<div data-view="name-view">
-		<label class="label">Email</label>
-		<p class="control has-icon has-icon-right">
-			<input class="input {{ c }}" type="text" placeholder="Email input" 
-					data-event="keyup" data-action="validate" data-params="email"> 
-			<i class="fa"></i><span class="help">{{ message }}</span>
-		</p>
-	</div>
+	<section class="section" data-view="name-view">
+		<div class="container is-fluid" >
 
-	
+			<label class="label">Email</label>
+			<p class="control has-icon has-icon-right">
+				<input class="input {{ is_valid_email }}" type="text"
+					placeholder="Email input" data-event="keyup" data-action="validate"
+					data-params="email"> <i class="fa {{ icon_check }}"></i><span class="help {{ help }}">{{ message }}</span>
+			</p>
+			
+			<ul>
+				{{> list }}
+			</ul>
+
+		</div>
+	</section>
+
 
 	<script type="text/javascript" data-main="js/app/boot.js"
 		src="js/vendor/require.min.js"></script>

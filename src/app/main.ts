@@ -16,6 +16,8 @@ export module MyApp {
         
         indexAction() {
             this.view.setVar('message','please enter email');
+            this.view.setVar('names',[{name:'John'},{name:'Foo'},{name:'Bar'}]);
+            this.view.setPartials({list:'{{#names}}<li>{{name}}</li>{{/names}}'});
         }
         validateAction(e, kind) {
             this.view.setVar('c',e.target.value);

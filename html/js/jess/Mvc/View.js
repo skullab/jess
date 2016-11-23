@@ -1,4 +1,4 @@
-define(["require", "exports", '../util/Util'], function (require, exports, Util_1) {
+define(["require", "exports", '../util/Util', './View/TemplateObserver'], function (require, exports, Util_1, TemplateObserver_1) {
     "use strict";
     var View = (function () {
         function View(element) {
@@ -35,34 +35,37 @@ define(["require", "exports", '../util/Util'], function (require, exports, Util_
             return this._rootElement;
         };
         View.prototype.setObserver = function (target) {
-            var _this = this;
-            var observer = new MutationObserver(function (mutations) {
-                mutations.forEach(function (mutation) {
+            this._observer = new TemplateObserver_1.TemplateObserver(target, this._rootElement);
+            this._observer.observe();
+            /*let _this = this ;
+            let observer = new MutationObserver(function(mutations) {
+    
+                mutations.forEach(function(mutation) {
                     console.log('>>> observer');
-                    var _old = mutation.removedNodes;
-                    var _new = mutation.addedNodes;
-                    for (var i in _old) {
+                    let _old = mutation.removedNodes;
+                    let _new = mutation.addedNodes;
+                    for (let i in _old) {
                         if (_old[i] !== _new[i]) {
                             console.log('    find differences..');
                             console.log('node type :', _new[i].nodeType);
                             console.log(_old[i], 'vs', _new[i]);
                             if (_new[i].nodeType == 1) {
                                 console.log('    check innerHTML');
-                                var _oldEl = _old[i];
-                                var _newEl = _new[i];
+                                let _oldEl = <Element>_old[i];
+                                let _newEl = <Element>_new[i];
                                 console.log(_oldEl.innerHTML, 'vs', _newEl.innerHTML);
                                 if (_new[i].hasChildNodes()) {
-                                    var _newNodes = _new[i].childNodes;
-                                    var _oldNodes = _old[i].childNodes;
-                                    for (var _i in _newNodes) {
+                                    let _newNodes = _new[i].childNodes;
+                                    let _oldNodes = _old[i].childNodes;
+                                    for (let _i in _newNodes) {
                                         console.log(_oldNodes[_i], 'vs', _newNodes[_i]);
                                         if (_newNodes[_i].nodeType == 1) {
                                             console.log('    >>>>>>>>>>> check innerHTML');
                                             console.log(_oldNodes[_i].innerHTML, 'vs', _newNodes[_i].innerHTML);
                                             if (_oldNodes[_i].innerHTML != _newNodes[_i].innerHTML) {
                                                 console.log('       FIND IT !');
-                                                console.log('coord', i, _i);
-                                                _this._rootElement.childNodes[i].childNodes[_i].innerHTML = _newNodes[_i].innerHTML;
+                                                console.log('coord',i,_i);
+                                                _this._rootElement.childNodes[i].childNodes[_i].innerHTML = _newNodes[_i].innerHTML ;
                                             }
                                         }
                                     }
@@ -72,8 +75,9 @@ define(["require", "exports", '../util/Util'], function (require, exports, Util_
                     }
                 });
             });
+    
             // configuration of the observer:
-            var config = {
+            let config = {
                 attributes: true,
                 childList: true,
                 characterData: true,
@@ -81,9 +85,10 @@ define(["require", "exports", '../util/Util'], function (require, exports, Util_
                 attributeOldValue: true,
                 characterDataOldValue: true
             };
+    
             // pass in the target node, as well as the observer options
             //console.log(target);
-            observer.observe(target, config);
+            observer.observe(target, config);*/
         };
         View.prototype.setTemplate = function (template) {
             this._template = template.replace(/&gt;/g, '>');
@@ -113,19 +118,8 @@ define(["require", "exports", '../util/Util'], function (require, exports, Util_
         };
         View.prototype.setContent = function (content) {
             this._content = content;
-            /*if (!this._isRendered) {
-                //this._rootElement.innerHTML = this._content;
-                console.log(this._rootElement.innerHTML);
-                this._isRendered = true;
-                return;
-            }
-            if (this._rootElement.innerHTML != this._content) {
-                console.log('render > bind');
-                console.log(this._rootElement.innerHTML);
-                console.log(this._content);
-            }*/
             this._templateElement.innerHTML = this._content;
-            console.log(this._templateElement.innerHTML);
+            //console.log(this._templateElement.innerHTML);
         };
         View.prototype.getContent = function () {
             return this._content;

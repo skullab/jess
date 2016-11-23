@@ -14,6 +14,8 @@ define(["require", "exports", '../jess/Di', '../jess/Mvc/View/Engine/Mustache', 
             }
             IndexController.prototype.indexAction = function () {
                 this.view.setVar('message', 'please enter email');
+                this.view.setVar('names', [{ name: 'John' }, { name: 'Foo' }, { name: 'Bar' }]);
+                this.view.setPartials({ list: '{{#names}}<li>{{name}}</li>{{/names}}' });
             };
             IndexController.prototype.validateAction = function (e, kind) {
                 this.view.setVar('c', e.target.value);

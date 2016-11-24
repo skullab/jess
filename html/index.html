@@ -22,7 +22,7 @@
         <![endif]-->
 
 	<!-- Add your site or application content here -->
-	<section class="section" data-view="name-view">
+	<section name="test" class="section" data-view="name-view">
 		<div class="container is-fluid" >
 
 			<label class="label">Email</label>
@@ -31,12 +31,16 @@
 					placeholder="Email input" data-event="keyup" data-action="validate"
 					data-params="email"> <i class="fa {{ icon_check }}"></i><span class="help {{ help }}">{{ message }}</span>
 			</p>
-			
+			<div>{{{ hello }}}</div>
 			<ul>
 				{{> list }}
 			</ul>
 
 		</div>
+	</section>
+	
+	<section class="section" data-view="other-view">
+		<div class="container"><h1>{{ great }}</h1></div>
 	</section>
 
 

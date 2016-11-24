@@ -24,8 +24,10 @@ define(["require", "exports", './Controller', './View', './Dispatcher', '../util
             this.setDi(di);
             this.setDataApplicationPrefix(prefix);
             this._registerServices();
-            this._findModules();
             this._findViews();
+            this._di.get('viewManager').parseAll();
+            this._findModules();
+            this._di.get('viewManager').renderAll();
             //this._findEvents();
         }
         Application.prototype.setDataApplicationPrefix = function (prefix) {
@@ -238,7 +240,7 @@ define(["require", "exports", './Controller', './View', './Dispatcher', '../util
         };
         Application.prototype.beforeHandle = function (mod, controller, action, params) {
             //console.log('before handle > setting defaults');
-            this.getActiveView().parse();
+            //this.getActiveView().parse();
             this.setDefaultModule(mod);
             this.setDefaultController(controller);
             this.setDefaultAction(action);

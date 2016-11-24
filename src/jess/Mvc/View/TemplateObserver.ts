@@ -25,144 +25,121 @@ export class TemplateObserver {
         this._origin = origin;
         this._observer = new MutationObserver(this._callback.bind(this));
     }
-    protected _walk(node: Element | Node, old: Element | Node, index: number, coord?: any, space?: string, delegate?: {}) {
-        coord = coord || [];
-        let c = coord.length;
-        space = space ? space + space : '*--';
-
-        console.log(space + 'BEGIN', 'with', node, 'index', index);
-        if (node.nodeType === TemplateObserver.TYPE_ELEMENT) {
-            console.log(space + '|-----------> START');
-            if (node && old) {
-
-                let innerHTML_test = node.innerHTML === old.innerHTML;
-                let attrs = [node.attributes, old.attributes];
-
-                console.log('innerHTML:', innerHTML_test)
-                console.log('attributes:', node.attributes == old.attributes)
-
-                console.log(node.innerHTML, old.innerHTML);
-                console.log(node.attributes, old.attributes);
-
-                coord.push(c);
-                console.log(coord);
-
-                delegate = { node: node, origin: old, innerHTML: innerHTML_test, attrs: attrs };
-            }
-            
-            if(!old){
-                console.log(space+'|-----------> NO ORIGIN !')
-                let _d = document.createElement(node.parentElement.nodeName);
-                _d.appendChild(node);
-                old = _d ;
-                old = node ;
-                console.log(old.parentElement);
-            }
-            node = node.firstChild;
-            old = old.firstChild;
-
-            console.log(space + 'first child', node);
-            while (node) {
-                this._walk(node, old, index, coord, space, delegate);
-                console.log(space + 'processing...', node);
-                node = node.nextSibling;
-                old = old ? old.nextSibling : null;
-                console.log('       >-----------', node);
-                if (node && old) {
-
-                    let innerHTML_test = node.innerHTML === old.innerHTML;
-                    let attrs = [node.attributes, old.attributes];
-
-                    console.log('innerHTML:', innerHTML_test);
-                    console.log('attributes:', node.attributes == old.attributes)
-
-                    delegate = { node: node, origin: old, innerHTML: innerHTML_test, attrs: attrs };
-                }
-                console.log('-----------< END');
-                console.log('');
-            }
-            console.log(space + 'FINISH -> ', delegate);
-            console.log(space + 'COORD  -> ', index, coord[coord.length - 1]);
-            console.log('');
-
-
-        } else {
-            console.log(space + '|->   [not an element]');
-            console.log(space + '----------------------');
-            console.log('');
-        }
-
-        return delegate;
-    }
     protected __walk(target: Element | Node, origin: Element | Node, parentOrigin?: Element | Node, previousOrigin?: Element | Node) {
         if (target.nodeType === TemplateObserver.TYPE_ELEMENT) {
-            console.log('WALK....');
 
-           
-            console.log('--->',origin,target);
-            
+            // genitore
+            //console.log('parent', target, origin);
+            let el_eq = target == origin;
+            //console.info('previous origin element', previousOrigin);
+            let origin_type = null;
+            let origin_tag = null;
+
             if (!origin) {
-                console.log('->NOT ORIGIN<-');
+                console.warn('origin is not exists !');
 
-                console.log(parentOrigin, previousOrigin.lastChild, target);
-                if(previousOrigin.lastChild.nodeType !== target.nodeType ){
-                    previousOrigin.removeChild(previousOrigin.lastChild);
-                    console.log('remove----');
-                }
-                previousOrigin.appendChild(target);
-                
-                //origin = target ;//previousOrigin.lastChild ;
-                
-                //console.log(origin.parentElement,target);
-                //parentOrigin.replaceChild(target,target.parentElement.firstChild);
-                //origin = target ;
-                //console.log(origin,target);
-                //previousOrigin.appendChild(target);
+                origin = target.cloneNode();
+                let _origin = <Element>origin;
+                let _target = <Element>target;
+                _origin.innerHTML = _target.innerHTML;
+                previousOrigin.appendChild(origin);
+                //console.log(origin);
             }
-            
-            
-            //console.log('EQUALITY',origin == target);
-            
-            
-             if (origin) {
-                parentOrigin = origin.parentElement;
+
+            if (origin) {
+                //console.log('saving previous origin element...');
                 previousOrigin = origin;
-                console.log('<if origin>', parentOrigin, previousOrigin,origin,target);
+                parentOrigin = origin.parentElement;
+                origin_type = origin.nodeType;
+                origin_tag = origin.nodeName;
             }
-            
+
+            //console.info('element equality:', el_eq);
+            let attrs_eq = target.attributes == origin.attributes;
+            //console.info('attributes equality', attrs_eq);
+            if (!attrs_eq) {
+                let attrs = target.attributes;
+                for (let i = 0; i < attrs.length; i++) {
+                    let _origin = <Element>origin;
+                    _origin.setAttribute(attrs[i].nodeName, attrs[i].nodeValue);
+                }
+            }
+            //console.info('node type equality:', target.nodeType === origin_type);
+            if (target.nodeType !== origin_type) {
+                console.warn('origin node type is different to target node type!', target, origin);
+            }
+            if (target.nodeName != origin_tag) {
+                console.warn('tag equality:', target.nodeName == origin_tag, target.nodeName, origin_tag);
+                parentOrigin.replaceChild(target.cloneNode(true), origin);
+            } else {
+                //console.info('tag equality:', target.nodeName == origin_tag);
+            }
+
             target = target.firstChild;
-            origin = origin ? origin.firstChild : null ;
-            console.log('<-LAST->',origin,target);
+            origin = origin.firstChild;
+            // figlio
+            //console.log('first child', target, origin);
+
+            if (target) {
+                //console.log('first child target node type:', target.nodeType);
+            }
+            if (origin) {
+                //console.log('first child origin node type:', origin.nodeType);
+            }
+            if (!target && origin) {
+                console.warn('target not exist but origin is an element...removing ?', origin);
+                console.warn('origin type:', origin.nodeType);
+                console.warn('origin tag:', origin.nodeName);
+                switch (origin.nodeType) {
+                    case TemplateObserver.TYPE_TEXT_NODE:
+                        origin.textContent = null;
+                        break;
+                    case TemplateObserver.TYPE_ELEMENT:
+                        let _origin = <Element>origin;
+                        //_origin.innerHTML = null ;
+                        break;
+                }
+
+                //previousOrigin.removeChild(origin);
+            }
 
             while (target) {
                 this.__walk(target, origin, parentOrigin, previousOrigin);
+                //console.log('next sibling');
                 target = target.nextSibling;
-                origin = origin ?  origin.nextSibling : null ;
-                console.log('------------------------',origin)
+                if (!origin) {
+                    console.warn('origin is not exists...nextSibling?');
+                } else {
+                    origin = origin.nextSibling;
+                }
             }
+            //console.log('nothing to do...');
+        } else {
+            //console.log('not an element...');
+            if (target.nodeType === TemplateObserver.TYPE_TEXT_NODE) {
+                //console.log('...is a text node');
+                if (!origin) {
+                    console.warn('target is a text node but origin doesn\'t exist !');
 
-        }
-    }
-    protected _callback(mutations) {
-        console.log('>>                   TEMPLATE OBSERVER                     <<');
-        this._walk(this._target,this._origin,0);
-        /*
-        let _this = this;
-        mutations.forEach(function(mutation: MutationRecord) {
-            console.log('>> TEMPLATE OBSERVER <<');
-            //console.log(mutation)
-            _this.__walk(_this._target, _this._origin);
-        });*/
-    }
-    protected parseDelegate(delegate: { node: Node, origin: Node, innerHTML: boolean, attrs: {}[] }) {
-        if (delegate) {
-            console.log('+++++++++++++++++++++++++++++++++++++++++++++');
-            if (!delegate.innerHTML) {
-                delegate.origin.innerHTML = delegate.node.innerHTML;
+                } else {
+                    let txt_n_eq = target == origin;
+                    let txt_eq = target.textContent == origin.textContent;
+                    //console.info('text node equality:', txt_n_eq);
+                    //console.info('text content equality:', txt_eq);
+                    if (!txt_eq) {
+                        origin.textContent = target.textContent;
+                    }
+                }
             }
-            console.log('+++++++++++++++++++++++++++++++++++++++++++++');
         }
+        //console.log('finish traversing!');
     }
+
+    protected _callback(mutations) {
+        //console.log('>>                   TEMPLATE OBSERVER                     <<');
+        this.__walk(this._target, this._origin);
+    }
+
     setConfig(mix: any, value?: any) {
         if (typeof mix === 'object') {
             this._config = mix;

@@ -3,7 +3,7 @@ import {ViewEngineInterface} from './View/Engine/ViewEngineInterface';
 import {InjectionAwareInterface} from '../Di/InjectionAwareInterface';
 import {DiInterface} from '../Di/DiInterface';
 import {Util} from '../util/Util';
-import {TemplateObserver} from './View/TemplateObserver' ;
+import {TemplateObserver} from './View/TemplateObserver';
 
 export class View implements ViewInterface, InjectionAwareInterface {
 
@@ -21,8 +21,8 @@ export class View implements ViewInterface, InjectionAwareInterface {
     protected _isRendered: boolean = false;
     protected _dataBinding: {}[] = [];
     protected _guid: any;
-    protected _observer:TemplateObserver;
-    
+    protected _observer: TemplateObserver;
+
     constructor(element: Element = document.documentElement) {
         this._guid = Util.guid();
         this.setRootElement(element);
@@ -47,88 +47,21 @@ export class View implements ViewInterface, InjectionAwareInterface {
     getRootElement(): Element {
         return this._rootElement;
     }
-    setObserver(target:Element) {
-        this._observer = new TemplateObserver(target,this._rootElement);
+    setObserver(target: Element) {
+        this._observer = new TemplateObserver(target, this._rootElement);
         this._observer.observe();
-        /*let _this = this ;
-        let observer = new MutationObserver(function(mutations) {
-
-            mutations.forEach(function(mutation) {
-                console.log('>>> observer');
-                let _old = mutation.removedNodes;
-                let _new = mutation.addedNodes;
-                for (let i in _old) {
-                    if (_old[i] !== _new[i]) {
-                        console.log('    find differences..');
-                        console.log('node type :', _new[i].nodeType);
-                        console.log(_old[i], 'vs', _new[i]);
-                        if (_new[i].nodeType == 1) {
-                            console.log('    check innerHTML');
-                            let _oldEl = <Element>_old[i];
-                            let _newEl = <Element>_new[i];
-                            console.log(_oldEl.innerHTML, 'vs', _newEl.innerHTML);
-                            if (_new[i].hasChildNodes()) {
-                                let _newNodes = _new[i].childNodes;
-                                let _oldNodes = _old[i].childNodes;
-                                for (let _i in _newNodes) {
-                                    console.log(_oldNodes[_i], 'vs', _newNodes[_i]);
-                                    if (_newNodes[_i].nodeType == 1) {
-                                        console.log('    >>>>>>>>>>> check innerHTML');
-                                        console.log(_oldNodes[_i].innerHTML, 'vs', _newNodes[_i].innerHTML);
-                                        if (_oldNodes[_i].innerHTML != _newNodes[_i].innerHTML) {
-                                            console.log('       FIND IT !');
-                                            console.log('coord',i,_i);
-                                            _this._rootElement.childNodes[i].childNodes[_i].innerHTML = _newNodes[_i].innerHTML ;
-                                        }
-                                    }
-                                }
-                            }
-                        }
-                    }
-                }
-            });
-        });
-
-        // configuration of the observer:
-        let config = {
-            attributes: true,
-            childList: true,
-            characterData: true,
-            subtree: true,
-            attributeOldValue: true,
-            characterDataOldValue: true
-        };
-
-        // pass in the target node, as well as the observer options
-        //console.log(target);
-        observer.observe(target, config);*/
     }
 
     setTemplate(template: string): void {
 
         this._template = template.replace(/&gt;/g, '>');
-        this._templateElement = document.createElement('div');
+        this._templateElement = document.createElement(this._rootElement.nodeName);
+        let attrs = this._rootElement.attributes;
+        for (let i = 0; i < attrs.length; i++) {
+            this._templateElement.setAttribute(attrs[i].nodeName, attrs[i].nodeValue);
+        }
         this._templateElement.innerHTML = this._template;
         this.setObserver(this._templateElement);
-
-        /*for (let i = 0; i < this._templateElement.childNodes.length; i++) {
-            let node = this._templateElement.childNodes[i]
-            this.prepareObserver(node);
-        }*/
-        /*let p = /\{\{\s*[a-zA-Z0-9_]*\s*\}\}/ig;
-        let m;
-        let _m = '';
-        let _l = this._template.length;
-        let _i = 0;
-        while (m = p.exec(this._template)) {
-            let _v = m[0].replace(/\{\{/g, '').replace(/\}\}/g, '').trim();
-            _m += m.input.substring(_i, _i = m.index) + '<div id="' + this._guid + ':' + _v + '">' + m[0] + '</div>';
-            _i += m[0].length;
-        }
-        _m += template.substring(_i, _l);
-        
-        this._template = _m ;*/
-
     }
     getTemplate(): string {
         return this._template;
@@ -136,7 +69,6 @@ export class View implements ViewInterface, InjectionAwareInterface {
     setContent(content: string): void {
         this._content = content;
         this._templateElement.innerHTML = this._content;
-        //console.log(this._templateElement.innerHTML);
     }
     getContent(): string {
         return this._content;
@@ -160,6 +92,17 @@ export class View implements ViewInterface, InjectionAwareInterface {
     getVars(): {} {
         return this._variables;
     }
+    removeVar(name: string): void {
+        if (this.hasVar(name)) {
+            delete this._variables[name];
+        }
+    }
+    removeAllVars(): void {
+        this._variables = {};
+    }
+    hasVar(name: string) {
+        return this._variables.hasOwnProperty(name);
+    }
     setPartials(partials: {}): void {
         this._partials = partials;
     }
@@ -174,7 +117,6 @@ export class View implements ViewInterface, InjectionAwareInterface {
     parse(tags?: string[]): void {
         this.checkEngine();
         this._parsedContent = this._engine.parse(this.getTemplate(), tags);
-        //console.log(this._parsedContent);
     }
     render(partials?: {}): void {
         if (!this._enable) return;

@@ -51,12 +51,12 @@ export class ViewManager implements InjectionAwareInterface {
         }
     }
     addView(view: View): void {
-        if(this._di.has('viewEngine')){
-         view.setViewEngine(this._di.get('viewEngine'));   
+        if (this._di.has('viewEngine')) {
+            view.setViewEngine(this._di.get('viewEngine'));
         }
         this._views.add(view);
     }
-    
+
     removeView(view: View): void {
         this._views.remove(view);
     }
@@ -66,6 +66,14 @@ export class ViewManager implements InjectionAwareInterface {
     renderAll() {
         for (let v of this.toArray()) {
             v.render();
+        }
+    }
+    parseView(index: any) {
+        this.getView(index).parse();
+    }
+    parseAll() {
+         for (let v of this.toArray()) {
+            v.parse();
         }
     }
     toArray(): View[] {

@@ -3,7 +3,7 @@ var __extends = (this && this.__extends) || function (d, b) {
     function __() { this.constructor = d; }
     d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
 };
-define(["require", "exports", '../jess/Di', '../jess/Mvc/View/Engine/Mustache', '../jess/Mvc/Controller', '../jess/Mvc/Application'], function (require, exports, Di_1, Mustache_1, Controller_1, Application_1) {
+define(["require", "exports", '../jess/Di', '../jess/Mvc/View/Engine/Mustache', '../jess/Mvc/Controller', '../jess/Mvc/Application', '../jess/Http/HttpRequest'], function (require, exports, Di_1, Mustache_1, Controller_1, Application_1, HttpRequest_1) {
     "use strict";
     var MyApp;
     (function (MyApp) {
@@ -13,23 +13,37 @@ define(["require", "exports", '../jess/Di', '../jess/Mvc/View/Engine/Mustache', 
                 _super.apply(this, arguments);
             }
             IndexController.prototype.indexAction = function () {
-                this.view.setVar('message', 'please enter email');
-                this.view.setVar('names', [{ name: 'John' }, { name: 'Foo' }, { name: 'Bar' }]);
+                var request = new HttpRequest_1.HttpRequest();
+                request.onreadystatechange(function () {
+                });
+                //this.view.setVar('hello', '<b>hello !</b>');
+                this.view.setVar('message', 'please enter a email');
+                //this.view.setVar('names', [{ name: 'John' }, { name: 'Foo' }, { name: 'Bar' }]);
                 this.view.setPartials({ list: '{{#names}}<li>{{name}}</li>{{/names}}' });
             };
+            IndexController.prototype.helloAction = function (email) {
+                this.view.setVar('hello', '<b>hello !</b>');
+                this.view.setVar('names', [{ name: email }]);
+            };
             IndexController.prototype.validateAction = function (e, kind) {
-                this.view.setVar('c', e.target.value);
-                this.view.setVar('message', e.target.value);
-                if (kind == 'foo') {
-                    console.log('validate email');
-                    var value = e.target.value;
+                var value = e.target.value;
+                if (kind == 'email') {
                     var re = /^(([^<>()\[\]\\.,;:\s@"]+(\.[^<>()\[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;
                     if (re.test(value)) {
-                        console.log('valid email');
-                        this.view.setVar('message', 'valid email');
+                        this.view.setVar('message', value + ' great !');
+                        this.view.setVar('is_valid_email', 'is-success');
+                        this.view.setVar('help', 'is-success');
+                        this.view.setVar('icon_check', 'fa-check');
+                        this.dispatcher.forward('index', 'hello', [value]);
                     }
                     else {
-                        console.log('invalid email');
+                        this.view.setVar('message', value + ' is invalid email !');
+                        this.view.setVar('is_valid_email', 'is-danger');
+                        this.view.setVar('help', 'is-danger');
+                        this.view.setVar('icon_check', 'fa-warning');
+                    }
+                    if (value == '') {
+                        this.view.setVar('message', 'please enter a VALID email !');
                     }
                 }
                 //this.view.disable();

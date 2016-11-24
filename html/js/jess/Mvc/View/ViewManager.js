@@ -60,6 +60,15 @@ define(["require", "exports", '../View', '../../util/ArrayList'], function (requ
                 v.render();
             }
         };
+        ViewManager.prototype.parseView = function (index) {
+            this.getView(index).parse();
+        };
+        ViewManager.prototype.parseAll = function () {
+            for (var _i = 0, _a = this.toArray(); _i < _a.length; _i++) {
+                var v = _a[_i];
+                v.parse();
+            }
+        };
         ViewManager.prototype.toArray = function () {
             return this._views.toArray();
         };

@@ -1,89 +1,110 @@
-import {ViewEngineInterface} from './Engine/ViewEngineInterface' ;
+import {ViewEngineInterface} from './Engine/ViewEngineInterface';
 export interface ViewInterface {
-    
-    setName(name:string):void;
-    getName():string;
+
+    setName(name: string): void;
+    getName(): string;
     /**
      * Set the template view to render.
      * 
      * @param {string} template : The Template view to render.
      */
-    setTemplate(template:string):void;
+    setTemplate(template: string): void;
     /**
      * Returns the template view.
      * 
      * @return {string} : The template view.
      */
-    getTemplate():string;
+    getTemplate(): string;
     /**
      * Set the Html content of the view
      * 
      * @param {string} content : The content of the view
      * 
      */
-    setContent(content:string):void;
+    setContent(content: string): void;
     /**
      * Returns the Html content of the View
      * 
      * @return {string} content : Html content
      * 
      */
-    getContent():string;
+    getContent(): string;
     /**
      * Set a single view variable
      * 
      * @param {string} name : The name of the variable
      * @param {any} value : The value of the variable
      */
-    setVar(name:string,value:any):void;
+    setVar(name: string, value: any): void;
     /**
      * Set all the variables in the view
      * 
      * @param {object} variables : The object within the variables
      * @param {boolean} merge? : Optional merge boolean value. If set the passed object will be merged to the original stored 
      */
-    setVars(variables:{},merge?:boolean):void;
+    setVars(variables: {}, merge?: boolean): void;
     /**
      * Returns a variable previously set in the view
      * 
      * @param {string} name : The name of the variable
      * @return {any} value : The value of the variable
      */
-    getVar(name:string):any;
+    getVar(name: string): any;
+    /**
+     * Returns all variables in the view
+     * @return {object} : variables.
+     */
+    getVars(): {};
+    /**
+     * Removes a variable in the view by name.
+     * @param {string} name : The name of the variable to remove.
+     */
+    removeVar(name: string): void;
+    /**
+     * Removes all variables stored in the view.
+     */
+    removeAllVars(): void;
     /**
      * Set the partial views object to render.
      * 
      * @param {object} partials : The partial views to render.
      */
-    setPartials(partials:{}):void;
+    setPartials(partials: {}): void;
     /**
      * Returns the partial views object.
      * 
      * @return {object} : The partial views.
      */
-    getPartials():{};
+    getPartials(): {};
     /**
      * Parse the current template view.
      * 
      */
-    parse(tags?:string[]):void;
+    parse(tags?: string[]): void;
     /**
      * Render the template view.
      * 
      * @param {object} partials? : Optional partial views to render inside the current view.
      */
-    render(partials?:{}):void;
-    
+    render(partials?: {}): void;
+    /**
+     * Enables the rendering process
+     */
+    enable(): void;
+    /**
+     * Disables the rendering process
+     */
+    disable(): void;
     /**
      * Set the template engine.
      * 
      * @param {object} engine : The template engine.
      */
-    setViewEngine(engine:ViewEngineInterface):void;
+    setViewEngine(engine: ViewEngineInterface): void;
     /**
      * Returns the template engine.
      * 
      * @return {object} : The template engine.
      */
-    getViewEngine():ViewEngineInterface;
+    getViewEngine(): ViewEngineInterface;
 }

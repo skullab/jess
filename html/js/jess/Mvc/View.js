@@ -37,81 +37,16 @@ define(["require", "exports", '../util/Util', './View/TemplateObserver'], functi
         View.prototype.setObserver = function (target) {
             this._observer = new TemplateObserver_1.TemplateObserver(target, this._rootElement);
             this._observer.observe();
-            /*let _this = this ;
-            let observer = new MutationObserver(function(mutations) {
-    
-                mutations.forEach(function(mutation) {
-                    console.log('>>> observer');
-                    let _old = mutation.removedNodes;
-                    let _new = mutation.addedNodes;
-                    for (let i in _old) {
-                        if (_old[i] !== _new[i]) {
-                            console.log('    find differences..');
-                            console.log('node type :', _new[i].nodeType);
-                            console.log(_old[i], 'vs', _new[i]);
-                            if (_new[i].nodeType == 1) {
-                                console.log('    check innerHTML');
-                                let _oldEl = <Element>_old[i];
-                                let _newEl = <Element>_new[i];
-                                console.log(_oldEl.innerHTML, 'vs', _newEl.innerHTML);
-                                if (_new[i].hasChildNodes()) {
-                                    let _newNodes = _new[i].childNodes;
-                                    let _oldNodes = _old[i].childNodes;
-                                    for (let _i in _newNodes) {
-                                        console.log(_oldNodes[_i], 'vs', _newNodes[_i]);
-                                        if (_newNodes[_i].nodeType == 1) {
-                                            console.log('    >>>>>>>>>>> check innerHTML');
-                                            console.log(_oldNodes[_i].innerHTML, 'vs', _newNodes[_i].innerHTML);
-                                            if (_oldNodes[_i].innerHTML != _newNodes[_i].innerHTML) {
-                                                console.log('       FIND IT !');
-                                                console.log('coord',i,_i);
-                                                _this._rootElement.childNodes[i].childNodes[_i].innerHTML = _newNodes[_i].innerHTML ;
-                                            }
-                                        }
-                                    }
-                                }
-                            }
-                        }
-                    }
-                });
-            });
-    
-            // configuration of the observer:
-            let config = {
-                attributes: true,
-                childList: true,
-                characterData: true,
-                subtree: true,
-                attributeOldValue: true,
-                characterDataOldValue: true
-            };
-    
-            // pass in the target node, as well as the observer options
-            //console.log(target);
-            observer.observe(target, config);*/
         };
         View.prototype.setTemplate = function (template) {
             this._template = template.replace(/&gt;/g, '>');
-            this._templateElement = document.createElement('div');
+            this._templateElement = document.createElement(this._rootElement.nodeName);
+            var attrs = this._rootElement.attributes;
+            for (var i = 0; i < attrs.length; i++) {
+                this._templateElement.setAttribute(attrs[i].nodeName, attrs[i].nodeValue);
+            }
             this._templateElement.innerHTML = this._template;
             this.setObserver(this._templateElement);
-            /*for (let i = 0; i < this._templateElement.childNodes.length; i++) {
-                let node = this._templateElement.childNodes[i]
-                this.prepareObserver(node);
-            }*/
-            /*let p = /\{\{\s*[a-zA-Z0-9_]*\s*\}\}/ig;
-            let m;
-            let _m = '';
-            let _l = this._template.length;
-            let _i = 0;
-            while (m = p.exec(this._template)) {
-                let _v = m[0].replace(/\{\{/g, '').replace(/\}\}/g, '').trim();
-                _m += m.input.substring(_i, _i = m.index) + '<div id="' + this._guid + ':' + _v + '">' + m[0] + '</div>';
-                _i += m[0].length;
-            }
-            _m += template.substring(_i, _l);
-            
-            this._template = _m ;*/
         };
         View.prototype.getTemplate = function () {
             return this._template;
@@ -119,7 +54,6 @@ define(["require", "exports", '../util/Util', './View/TemplateObserver'], functi
         View.prototype.setContent = function (content) {
             this._content = content;
             this._templateElement.innerHTML = this._content;
-            //console.log(this._templateElement.innerHTML);
         };
         View.prototype.getContent = function () {
             return this._content;
@@ -144,6 +78,17 @@ define(["require", "exports", '../util/Util', './View/TemplateObserver'], functi
         View.prototype.getVars = function () {
             return this._variables;
         };
+        View.prototype.removeVar = function (name) {
+            if (this.hasVar(name)) {
+                delete this._variables[name];
+            }
+        };
+        View.prototype.removeAllVars = function () {
+            this._variables = {};
+        };
+        View.prototype.hasVar = function (name) {
+            return this._variables.hasOwnProperty(name);
+        };
         View.prototype.setPartials = function (partials) {
             this._partials = partials;
         };
@@ -158,7 +103,6 @@ define(["require", "exports", '../util/Util', './View/TemplateObserver'], functi
         View.prototype.parse = function (tags) {
             this.checkEngine();
             this._parsedContent = this._engine.parse(this.getTemplate(), tags);
-            //console.log(this._parsedContent);
         };
         View.prototype.render = function (partials) {
             if (!this._enable)

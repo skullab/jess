@@ -38,8 +38,10 @@ export class Application implements ApplicationInterface, InjectionAwareInterfac
         this.setDataApplicationPrefix(prefix);
 
         this._registerServices();
-        this._findModules();
         this._findViews();
+        this._di.get('viewManager').parseAll();
+        this._findModules();
+        this._di.get('viewManager').renderAll();
         //this._findEvents();
     }
 
@@ -259,7 +261,7 @@ export class Application implements ApplicationInterface, InjectionAwareInterfac
     }
     protected beforeHandle(mod?: string, controller?: string, action?: string, params?: {}[]) {
         //console.log('before handle > setting defaults');
-        this.getActiveView().parse();
+        //this.getActiveView().parse();
         this.setDefaultModule(mod);
         this.setDefaultController(controller);
         this.setDefaultAction(action);

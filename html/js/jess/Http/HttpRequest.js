@@ -1,17 +1,43 @@
-define(["require", "exports"], function (require, exports) {
+define(["require", "exports", './HttpResponse'], function (require, exports, HttpResponse_1) {
     "use strict";
     var HttpRequest = (function () {
         function HttpRequest() {
             this._bypassCache = false;
             this._async = true;
-            this._responseType = "";
+            this._responseType = "text";
             this._timeout = 0;
             this._credentials = false;
             this._listenerInit = false;
-            this._request = new XMLHttpRequest();
         }
+        HttpRequest.prototype._createResponse = function (e) {
+            if (this.isDone()) {
+                this._response = new HttpResponse_1.HttpResponse(this);
+            }
+        };
+        HttpRequest.prototype.getRawData = function () {
+            return this._data;
+        };
+        HttpRequest.prototype.setRawData = function (data) {
+            this._data = data;
+        };
+        HttpRequest.prototype.setParams = function (params) {
+            this._params = params;
+        };
+        HttpRequest.prototype.getParams = function () {
+            return this._params;
+        };
+        HttpRequest.prototype.getParam = function (name) {
+            return this._params[name];
+        };
+        HttpRequest.prototype.appendParam = function (name, value) {
+            this._params[name] = value;
+        };
+        HttpRequest.prototype.getRawRequest = function () {
+            return this._request;
+        };
         HttpRequest.prototype.onreadystatechange = function (callback) {
-            this._request.onreadystatechange = callback;
+            //this._request.addEventListener('readystatechange', callback, false);
+            this._onreadystatechangeCallback = callback;
         };
         HttpRequest.prototype.abort = function () {
             this._request.abort();
@@ -93,6 +119,9 @@ define(["require", "exports"], function (require, exports) {
             if (async === void 0) { async = true; }
             if (user === void 0) { user = null; }
             if (password === void 0) { password = null; }
+            // RESET
+            this.reset();
+            // 
             this.setMethod(method);
             if (this._bypassCache) {
                 url += ((/\?/).test(url) ? "&" : "?") + (new Date()).getTime();
@@ -133,7 +162,7 @@ define(["require", "exports"], function (require, exports) {
             if (user === void 0) { user = null; }
             if (password === void 0) { password = null; }
             this.beforeOpen(method, url, async, user, password);
-            //this._request.open(method, url, async, user, password);
+            this._request.open(this.getMethod(), this.getUrl(), this.isAsync(), this.getUsername(), this.getPassword());
             this.afterOpen();
         };
         HttpRequest.prototype.afterOpen = function () {
@@ -144,6 +173,65 @@ define(["require", "exports"], function (require, exports) {
                     this._request.withCredentials = this.getCredentials();
                 }
             }
+        };
+        //*************************************************************************************
+        HttpRequest.prototype.get = function (url, async, user, password) {
+            if (async === void 0) { async = true; }
+            if (user === void 0) { user = null; }
+            if (password === void 0) { password = null; }
+            this.open(HttpRequest.GET, url, async, user, password);
+        };
+        HttpRequest.prototype.post = function (url, async, user, password) {
+            if (async === void 0) { async = true; }
+            if (user === void 0) { user = null; }
+            if (password === void 0) { password = null; }
+            this.open(HttpRequest.POST, url, async, user, password);
+        };
+        HttpRequest.prototype.head = function (url, async, user, password) {
+            if (async === void 0) { async = true; }
+            if (user === void 0) { user = null; }
+            if (password === void 0) { password = null; }
+            this.open(HttpRequest.HEAD, url, async, user, password);
+        };
+        HttpRequest.prototype.put = function (url, async, user, password) {
+            if (async === void 0) { async = true; }
+            if (user === void 0) { user = null; }
+            if (password === void 0) { password = null; }
+            this.open(HttpRequest.PUT, url, async, user, password);
+        };
+        HttpRequest.prototype.delete = function (url, async, user, password) {
+            if (async === void 0) { async = true; }
+            if (user === void 0) { user = null; }
+            if (password === void 0) { password = null; }
+            this.open(HttpRequest.DELETE, url, async, user, password);
+        };
+        HttpRequest.prototype.trace = function (url, async, user, password) {
+            if (async === void 0) { async = true; }
+            if (user === void 0) { user = null; }
+            if (password === void 0) { password = null; }
+            this.open(HttpRequest.TRACE, url, async, user, password);
+        };
+        HttpRequest.prototype.connect = function (url, async, user, password) {
+            if (async === void 0) { async = true; }
+            if (user === void 0) { user = null; }
+            if (password === void 0) { password = null; }
+            this.open(HttpRequest.CONNECT, url, async, user, password);
+        };
+        HttpRequest.prototype.patch = function (url, async, user, password) {
+            if (async === void 0) { async = true; }
+            if (user === void 0) { user = null; }
+            if (password === void 0) { password = null; }
+            this.open(HttpRequest.PATCH, url, async, user, password);
+        };
+        HttpRequest.prototype.options = function (url, async, user, password) {
+            if (async === void 0) { async = true; }
+            if (user === void 0) { user = null; }
+            if (password === void 0) { password = null; }
+            this.open(HttpRequest.OPTIONS, url, async, user, password);
+        };
+        //*************************************************************************************
+        HttpRequest.prototype.getHttpResponse = function () {
+            return this._response;
         };
         HttpRequest.prototype.getResponse = function () {
             return this._request.response;
@@ -178,11 +266,14 @@ define(["require", "exports"], function (require, exports) {
         HttpRequest.prototype.getCredentials = function () {
             return this._credentials;
         };
-        HttpRequest.prototype.beforeSend = function () {
+        HttpRequest.prototype.beforeSend = function (data) {
+            this._data = data || this._data;
+            if (!this._data) {
+            }
         };
         HttpRequest.prototype.send = function (data) {
             if (data === void 0) { data = null; }
-            this.beforeSend();
+            this.beforeSend(data);
             this._request.send(data);
             this.afterSend();
         };
@@ -209,6 +300,10 @@ define(["require", "exports"], function (require, exports) {
         };
         HttpRequest.prototype.reset = function () {
             this._request = new XMLHttpRequest();
+            this._request.addEventListener('readystatechange', this._createResponse.bind(this), false);
+            if (typeof this._onreadystatechangeCallback === 'function') {
+                this._request.addEventListener('readystatechange', this._onreadystatechangeCallback, false);
+            }
         };
         HttpRequest.OPTIONS = 'OPTIONS';
         HttpRequest.GET = 'GET';

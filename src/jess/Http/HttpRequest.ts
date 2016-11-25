@@ -1,4 +1,5 @@
 import {HttpRequestListener} from './HttpRequestListener';
+import {HttpResponse} from './HttpResponse';
 
 export class HttpRequest {
 
@@ -32,17 +33,47 @@ export class HttpRequest {
     protected _async: boolean = true;
     protected _username: string;
     protected _password: string;
-    protected _responseType: string = "";
+    protected _responseType: string = "text";
     protected _timeout: number = 0;
     protected _credentials: boolean = false;
     protected _listener: HttpRequestListener;
-    protected _listenerInit:boolean = false;
+    protected _listenerInit: boolean = false;
+    protected _response: HttpResponse;
+    protected _onreadystatechangeCallback: any;
+    protected _params: {};
 
     constructor() {
-        this._request = new XMLHttpRequest();
+
+    }
+    protected _createResponse(e) {
+        if (this.isDone()) {
+            this._response = new HttpResponse(this);
+        }
+    }
+    getRawData() {
+        return this._data;
+    }
+    setRawData(data: any) {
+        this._data = data;
+    }
+    setParams(params: {}): void {
+        this._params = params;
+    }
+    getParams(): any {
+        return this._params;
+    }
+    getParam(name: string): any {
+        return this._params[name];
+    }
+    appendParam(name: string, value: any) {
+        this._params[name] = value;
+    }
+    getRawRequest() {
+        return this._request;
     }
     onreadystatechange(callback: (e?) => void): void {
-        this._request.onreadystatechange = callback;
+        //this._request.addEventListener('readystatechange', callback, false);
+        this._onreadystatechangeCallback = callback;
     }
     abort(): void {
         this._request.abort();
@@ -121,9 +152,12 @@ export class HttpRequest {
         return this.readyState() == HttpRequest.STATE_DONE;
     }
     protected beforeOpen(method: string, url: string, async: boolean = true, user: string = null, password: string = null) {
+        // RESET
+        this.reset();
+        // 
         this.setMethod(method);
         if (this._bypassCache) {
-            url += ((/\?/).test(url) ? "&" : "?") + (new Date()).getTime() ;
+            url += ((/\?/).test(url) ? "&" : "?") + (new Date()).getTime();
         }
         this.setUrl(url);
         this.setAsync(async);
@@ -153,12 +187,12 @@ export class HttpRequest {
             this._request.ontimeout = function(e) {
                 _this._listener.onTimeout(e, _this);
             }
-            this._listenerInit = true ;
+            this._listenerInit = true;
         }
     }
     open(method: string, url: string, async: boolean = true, user: string = null, password: string = null) {
         this.beforeOpen(method, url, async, user, password);
-        //this._request.open(method, url, async, user, password);
+        this._request.open(this.getMethod(), this.getUrl(), this.isAsync(), this.getUsername(), this.getPassword());
         this.afterOpen();
     }
     protected afterOpen() {
@@ -169,6 +203,38 @@ export class HttpRequest {
                 this._request.withCredentials = this.getCredentials();
             }
         }
+    }
+    //*************************************************************************************
+    get(url: string, async: boolean = true, user: string = null, password: string = null) {
+        this.open(HttpRequest.GET, url, async, user, password);
+    }
+    post(url: string, async: boolean = true, user: string = null, password: string = null) {
+        this.open(HttpRequest.POST, url, async, user, password);
+    }
+    head(url: string, async: boolean = true, user: string = null, password: string = null) {
+        this.open(HttpRequest.HEAD, url, async, user, password);
+    }
+    put(url: string, async: boolean = true, user: string = null, password: string = null) {
+        this.open(HttpRequest.PUT, url, async, user, password);
+    }
+    delete(url: string, async: boolean = true, user: string = null, password: string = null) {
+        this.open(HttpRequest.DELETE, url, async, user, password);
+    }
+    trace(url: string, async: boolean = true, user: string = null, password: string = null) {
+        this.open(HttpRequest.TRACE, url, async, user, password);
+    }
+    connect(url: string, async: boolean = true, user: string = null, password: string = null) {
+        this.open(HttpRequest.CONNECT, url, async, user, password);
+    }
+    patch(url: string, async: boolean = true, user: string = null, password: string = null) {
+        this.open(HttpRequest.PATCH, url, async, user, password);
+    }
+    options(url: string, async: boolean = true, user: string = null, password: string = null) {
+        this.open(HttpRequest.OPTIONS, url, async, user, password);
+    }
+    //*************************************************************************************
+    getHttpResponse(): HttpResponse {
+        return this._response;
     }
     getResponse(): any {
         return this._request.response;
@@ -203,11 +269,15 @@ export class HttpRequest {
     getCredentials(): boolean {
         return this._credentials;
     }
-    protected beforeSend() {
+    protected beforeSend(data: any) {
+        this._data = data || this._data;
+        if (!this._data) {
+            
+        }
 
     }
     send(data: any = null) {
-        this.beforeSend();
+        this.beforeSend(data);
         this._request.send(data);
         this.afterSend();
     }
@@ -216,7 +286,7 @@ export class HttpRequest {
     }
     setHttpRequestListener(listener: HttpRequestListener): void {
         this._listener = listener;
-        this._listenerInit = false ;
+        this._listenerInit = false;
     }
     getHttpRequestListener(): HttpRequestListener {
         return this._listener;
@@ -235,5 +305,9 @@ export class HttpRequest {
     }
     reset(): void {
         this._request = new XMLHttpRequest();
+        this._request.addEventListener('readystatechange', this._createResponse.bind(this), false);
+        if (typeof this._onreadystatechangeCallback === 'function') {
+            this._request.addEventListener('readystatechange', this._onreadystatechangeCallback, false);
+        }
     }
 }

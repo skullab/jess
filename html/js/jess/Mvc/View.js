@@ -118,7 +118,10 @@ define(["require", "exports", '../util/Util', './View/TemplateObserver'], functi
             return this._engine;
         };
         View.prototype.start = function () { };
-        View.prototype.finish = function () { };
+        View.prototype.finish = function () {
+            console.log('finish render');
+            this.getRootElement().style.visibility = "visible";
+        };
         View.prototype.query = function (q) {
             return this._rootElement.querySelector(q);
         };

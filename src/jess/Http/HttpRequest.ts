@@ -1,4 +1,4 @@
-import {HttpRequestListener} from './HttpRequestListener';
+import {HttpListener} from './HttpListener';
 import {HttpResponse} from './HttpResponse';
 
 export class HttpRequest {
@@ -13,10 +13,25 @@ export class HttpRequest {
     static CONNECT = 'CONNECT';
     static PATCH = 'PATCH';
 
+	/**
+	 * @deprecated
+	 */
     static RESPONSE_ARRAY_BUFFER = "arraybuffer";
+	/**
+	 * @deprecated
+	 */
     static RESPONSE_BLOB = "blob";
+	/**
+	 * @deprecated
+	 */
     static RESPONSE_DOCUMENT = "document";
+	/**
+	 * @deprecated
+	 */
     static RESPONSE_JSON = "json";
+	/**
+	 * @deprecated
+	 */
     static RESPONSE_TEXT = "text";
 
     static STATE_UNSENT = 0;
@@ -25,7 +40,7 @@ export class HttpRequest {
     static STATE_LOADING = 3;
     static STATE_DONE = 4;
 
-    protected _request: XMLHttpRequest;
+    protected _requests: XMLHttpRequest[] = [];
     protected _data: any;
     protected _bypassCache: boolean = false;
     protected _url: string;
@@ -35,27 +50,31 @@ export class HttpRequest {
     protected _password: string;
     protected _responseType: string = "text";
     protected _timeout: number = 0;
+	protected _globalTimeout: number = 0;
     protected _credentials: boolean = false;
-    protected _listener: HttpRequestListener;
-    protected _listenerInit: boolean = false;
-    protected _response: HttpResponse;
+    protected _listener: HttpListener;
     protected _onreadystatechangeCallback: any;
     protected _params: {};
 
     constructor() {
-
-    }
-    protected _createResponse(e) {
-        if (this.isDone()) {
-            this._response = new HttpResponse(this);
-        }
-    }
-    getRawData() {
-        return this._data;
-    }
-    setRawData(data: any) {
-        this._data = data;
-    }
+		this.reset();
+	}
+	setTag(tag: string): void {
+		this.getRawRequest()['tag'] = tag;
+	}
+	/**
+	 * @deprecated
+	 */
+	getTag(): string {
+		return this.getRawRequest()['tag'];
+	}
+	getRawRequest(index?: number): XMLHttpRequest {
+		index = index || this._requests.length - 1;
+		return this._requests[index];
+	}
+	getRawRequestArray(): XMLHttpRequest[] {
+		return this._requests;
+	}
     setParams(params: {}): void {
         this._params = params;
     }
@@ -68,27 +87,29 @@ export class HttpRequest {
     appendParam(name: string, value: any) {
         this._params[name] = value;
     }
-    getRawRequest() {
-        return this._request;
-    }
     onreadystatechange(callback: (e?) => void): void {
-        //this._request.addEventListener('readystatechange', callback, false);
-        this._onreadystatechangeCallback = callback;
+		this._onreadystatechangeCallback = callback;
     }
     abort(): void {
-        this._request.abort();
+        this.getRawRequest().abort();
     }
+	/**
+	 * @deprecated
+	 */
     getAllResponseHeaders() {
-        return this._request.getAllResponseHeaders();
+        return this.getRawRequest().getAllResponseHeaders();
     }
+	/**
+	 * @deprecated
+	 */
     getResponseHeader(name: string): string {
-        return this._request.getResponseHeader(name);
+        return this.getRawRequest().getResponseHeader(name);
     }
     overrideMimeType(mimeType: string): void {
-        this._request.overrideMimeType(mimeType);
+        this.getRawRequest().overrideMimeType(mimeType);
     }
     setRequestHeader(header: string, value: string): void {
-        this._request.setRequestHeader(header, value);
+        this.getRawRequest().setRequestHeader(header, value);
     }
     setUrl(url: string): void {
         this._url = url;
@@ -126,133 +147,155 @@ export class HttpRequest {
     getResponseType(): string {
         return this._responseType;
     }
+	/**
+	 * @deprecated
+	 */
     readyState(): number {
-        return this._request.readyState;
+        return this.getRawRequest().readyState;
     }
     bypassCache(bypass: boolean) {
         this._bypassCache = bypass;
-        /*var oReq = new XMLHttpRequest();
-
-        oReq.open("GET", url + ((/\?/).test(url) ? "&" : "?") + (new Date()).getTime());
-        oReq.send(null);*/
     }
+	/**
+	 * @deprecated
+	 */
     isUnset(): boolean {
         return this.readyState() == HttpRequest.STATE_UNSENT;
     }
+	/**
+	 * @deprecated
+	 */
     isOpened(): boolean {
         return this.readyState() == HttpRequest.STATE_OPENED;
     }
+	/**
+	 * @deprecated
+	 */
     isHeadersReceived(): boolean {
         return this.readyState() == HttpRequest.STATE_HEADERS_RECEIVED;
     }
+	/**
+	 * @deprecated
+	 */
     isLoading(): boolean {
         return this.readyState() == HttpRequest.STATE_LOADING;
     }
+	/**
+	 * @deprecated
+	 */
     isDone() {
         return this.readyState() == HttpRequest.STATE_DONE;
     }
+
     protected beforeOpen(method: string, url: string, async: boolean = true, user: string = null, password: string = null) {
-        // RESET
-        this.reset();
-        // 
+
         this.setMethod(method);
+		switch (this.getMethod()) {
+			case HttpRequest.HEAD:
+			case HttpRequest.GET:
+				let _p = this._encodeParams();
+				if (_p.length > 0) {
+					url += '?' + _p;
+				}
+				break;
+		}
         if (this._bypassCache) {
-            url += ((/\?/).test(url) ? "&" : "?") + (new Date()).getTime();
+            url += ((/\?/).test(url) ? "&" : "?") + 'timestamp=' + (new Date()).getTime();
         }
         this.setUrl(url);
         this.setAsync(async);
         this.setUsername(user);
         this.setPassword(password);
-        //LISTENER
-        if (this._listener && !this._listenerInit) {
-            let _this = this;
-            this._request.onabort = function(e) {
-                _this._listener.onAbort(e, _this);
-            }
-            this._request.onerror = function(e) {
-                _this._listener.onError(e, _this);
-            }
-            this._request.onload = function(e) {
-                _this._listener.onLoad(e, _this);
-            }
-            this._request.onloadend = function(e) {
-                _this._listener.onLoadEnd(e, _this);
-            }
-            this._request.onloadstart = function(e) {
-                _this._listener.onLoadStart(e, _this);
-            }
-            this._request.onprogress = function(e) {
-                _this._listener.onProgress(e, _this);
-            }
-            this._request.ontimeout = function(e) {
-                _this._listener.onTimeout(e, _this);
-            }
-            this._listenerInit = true;
-        }
+
+		let _r = this.getRawRequest();
+		if (typeof this._onreadystatechangeCallback === 'function') {
+			_r.addEventListener('readystatechange', this._onreadystatechangeCallback, false);
+		}
+		this._resetListener();
     }
     open(method: string, url: string, async: boolean = true, user: string = null, password: string = null) {
         this.beforeOpen(method, url, async, user, password);
-        this._request.open(this.getMethod(), this.getUrl(), this.isAsync(), this.getUsername(), this.getPassword());
+        this.getRawRequest().open(this.getMethod(), this.getUrl(), this.isAsync(), this.getUsername(), this.getPassword());
         this.afterOpen();
     }
+
     protected afterOpen() {
-        if (this.isAsync()) {
-            this._request.responseType = this.getResponseType();
-            this._request.timeout = this.getTimeout();
-            if (this.isCorsEnabled()) {
-                this._request.withCredentials = this.getCredentials();
-            }
-        }
+
     }
     //*************************************************************************************
     get(url: string, async: boolean = true, user: string = null, password: string = null) {
         this.open(HttpRequest.GET, url, async, user, password);
+		this.send(null);
     }
     post(url: string, async: boolean = true, user: string = null, password: string = null) {
         this.open(HttpRequest.POST, url, async, user, password);
+		this.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded');
+		this.send(this.getData());
     }
     head(url: string, async: boolean = true, user: string = null, password: string = null) {
         this.open(HttpRequest.HEAD, url, async, user, password);
+		this.send(null);
     }
     put(url: string, async: boolean = true, user: string = null, password: string = null) {
         this.open(HttpRequest.PUT, url, async, user, password);
+		this.send(this.getData());
     }
     delete(url: string, async: boolean = true, user: string = null, password: string = null) {
         this.open(HttpRequest.DELETE, url, async, user, password);
+		this.send(this.getData());
     }
     trace(url: string, async: boolean = true, user: string = null, password: string = null) {
         this.open(HttpRequest.TRACE, url, async, user, password);
+		this.send(this.getData());
     }
     connect(url: string, async: boolean = true, user: string = null, password: string = null) {
         this.open(HttpRequest.CONNECT, url, async, user, password);
+		this.send(this.getData());
     }
     patch(url: string, async: boolean = true, user: string = null, password: string = null) {
         this.open(HttpRequest.PATCH, url, async, user, password);
+		this.send(this.getData());
     }
     options(url: string, async: boolean = true, user: string = null, password: string = null) {
         this.open(HttpRequest.OPTIONS, url, async, user, password);
+		this.send(this.getData());
     }
     //*************************************************************************************
-    getHttpResponse(): HttpResponse {
-        return this._response;
-    }
+	/**
+	 * @deprecated
+	 */
     getResponse(): any {
-        return this._request.response;
+        return this.getRawRequest().response;
     }
+	/**
+	 * @deprecated
+	 */
     getResponseText(): string {
-        return this._request.responseText;
+        return this.getRawRequest().responseText;
     }
+	/**
+	 * @deprecated
+	 */
     getResponseUrl(): string {
-        return this._request['responseURL'];
+        return this.getRawRequest()['responseURL'];
     }
+	/**
+	 * @deprecated
+	 */
     getResponseXml(): any {
-        return this._request.responseXML;
+        return this.getRawRequest().responseXML;
     }
+	/**
+	 * @deprecated
+	 */
     getStatus(): number {
-        return this._request.status;
+        return this.getRawRequest().status;
     }
+	/**
+	 * @deprecated
+	 */
     getStatusText(): string {
-        return this._request.statusText;
+        return this.getRawRequest().statusText;
     }
     setTimeout(timeout: number): void {
         this._timeout = timeout;
@@ -260,8 +303,17 @@ export class HttpRequest {
     getTimeout(): number {
         return this._timeout;
     }
+	setGlobalTimeout(timeout: number): void {
+		this._globalTimeout = timeout ;
+	}
+	getGlobalTimeout():number{
+		return this._globalTimeout ;
+	}
+	/**
+	 * @deprecated
+	 */
     getUpload(): XMLHttpRequestUpload {
-        return this._request.upload;
+        return this.getRawRequest().upload;
     }
     setCredentials(credentials: boolean) {
         this._credentials = credentials;
@@ -269,26 +321,49 @@ export class HttpRequest {
     getCredentials(): boolean {
         return this._credentials;
     }
-    protected beforeSend(data: any) {
-        this._data = data || this._data;
-        if (!this._data) {
-            
+	protected _fixedEncodeURIComponent(str) {
+		return encodeURIComponent(str).replace(/[!'()*]/g, function(c) {
+			return '%' + c.charCodeAt(0).toString(16);
+		});
+	}
+	protected _encodeParams(): String {
+		let params = this.getParams();
+		let _encoded = '';
+		for (let name in params) {
+			if (params.hasOwnProperty(name)) {
+				if (_encoded.length > 0) {
+					_encoded += '&';
+				}
+				_encoded += name + '=' + this._fixedEncodeURIComponent(params[name]);
+			}
+		}
+		return _encoded;
+	}
+    protected beforeSend(data: any): any {
+        data = data || this.getData() || this._encodeParams();
+		
+		if (this.isAsync()) {
+            this.getRawRequest().responseType = this.getResponseType();
+            this.getRawRequest().timeout = this.getTimeout() || this.getGlobalTimeout() ;
+            if (this.isCorsEnabled()) {
+                this.getRawRequest().withCredentials = this.getCredentials();
+            }
         }
-
+		
+		return data;
     }
     send(data: any = null) {
-        this.beforeSend(data);
-        this._request.send(data);
+        let _d = this.beforeSend(data);
+        this.getRawRequest().send(_d);
         this.afterSend();
     }
     protected afterSend() {
-
+		this.reset();
     }
-    setHttpRequestListener(listener: HttpRequestListener): void {
+    setHttpListener(listener: HttpListener): void {
         this._listener = listener;
-        this._listenerInit = false;
     }
-    getHttpRequestListener(): HttpRequestListener {
+    getHttpListener(): HttpListener {
         return this._listener;
     }
     setAsync(async: boolean) {
@@ -298,16 +373,40 @@ export class HttpRequest {
         return this._async;
     }
     isCorsEnabled() {
-        return this._request.withCredentials !== undefined;
+        return this.getRawRequest().withCredentials !== undefined;
     }
     sendBeacon(url: string, data: any) {
         //navigator.sendBeacon(url,data);
     }
     reset(): void {
-        this._request = new XMLHttpRequest();
-        this._request.addEventListener('readystatechange', this._createResponse.bind(this), false);
-        if (typeof this._onreadystatechangeCallback === 'function') {
-            this._request.addEventListener('readystatechange', this._onreadystatechangeCallback, false);
-        }
+		this._requests.push(new XMLHttpRequest());
+		this.setTimeout(0);
     }
+	protected _resetListener() {
+		if (this._listener) {
+			let _r = this.getRawRequest();
+			let _this = this;
+			_r.addEventListener('timeout', function(e) {
+				_this._listener.onTimeout(e, new HttpResponse(this));
+			}, false);
+			_r.addEventListener('abort', function(e) {
+				_this._listener.onAbort(e, new HttpResponse(this));
+			}, false);
+			_r.addEventListener('error', function(e) {
+				_this._listener.onError(e, new HttpResponse(this));
+			}, false);
+			_r.addEventListener('loadstart', function(e) {
+				_this._listener.onLoadStart(e, new HttpResponse(this));
+			}, false);
+			_r.addEventListener('progress', function(e) {
+				_this._listener.onProgress(e, new HttpResponse(this));
+			}, false);
+			_r.addEventListener('load', function(e) {
+				_this._listener.onLoad(e, new HttpResponse(this));
+			}, false);
+			_r.addEventListener('loadend', function(e) {
+				_this._listener.onLoadEnd(e, new HttpResponse(this));
+			}, false);
+		}
+	}
 }

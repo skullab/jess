@@ -255,7 +255,7 @@ export class Application implements ApplicationInterface, InjectionAwareInterfac
     setActiveView(viewName: string) {
         this._activeView = viewName;
     }
-    getActiveView() {
+    getActiveView():View{
         this._activeView = this._activeView ? this._activeView : (this._di.has('view') ? 'view' : 0);
         return this._di.get('viewManager').getView(this._activeView);
     }
@@ -289,7 +289,9 @@ export class Application implements ApplicationInterface, InjectionAwareInterfac
         //console.log('after handle');
         this.beforeRender();
         let view = this.getActiveView();
+		view.start();
         view.render();
+		view.finish();
         this.afterRender();
         this._findEvents();
         this._findListeners();

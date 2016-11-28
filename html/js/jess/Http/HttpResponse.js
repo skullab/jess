@@ -1,36 +1,47 @@
-define(["require", "exports", './HttpRequest'], function (require, exports, HttpRequest_1) {
+define(["require", "exports"], function (require, exports) {
     "use strict";
     var HttpResponse = (function () {
         function HttpResponse(request) {
             this._request = request;
-            this.rawRequest = request.getRawRequest();
             this._resolve();
         }
         HttpResponse.prototype._resolve = function () {
-            this.response = this._request.getResponse();
-            this.responseType = this._request.getResponseType();
-            if (this.responseType == HttpRequest_1.HttpRequest.RESPONSE_TEXT || this.responseType == '') {
-                this.responseText = this._request.getResponseText();
+            this.response = this._request.response;
+            this.responseType = this._request.responseType;
+            if (this.responseType == HttpResponse.TEXT || this.responseType == '') {
+                this.responseText = this._request.responseText;
             }
-            else if (this.responseType == HttpRequest_1.HttpRequest.RESPONSE_JSON) {
+            else if (this.responseType == HttpResponse.JSON) {
                 this.responseText = JSON.stringify(this.response);
             }
-            if (this.responseType == HttpRequest_1.HttpRequest.RESPONSE_DOCUMENT || this.responseType == '') {
-                this.responseXml = this._request.getResponseXml();
+            if (this.responseType == HttpResponse.DOCUMENT || this.responseType == '') {
+                this.responseXml = this._request.responseXML;
             }
-            this.responseUrl = this._request.getResponseUrl();
+            this.responseUrl = this._request['responseURL'];
             this.responseHeaders = this._request.getAllResponseHeaders();
-            this.status = this._request.getStatus();
-            this.statusText = this._request.getStatusText();
+            this.status = this._request.status;
+            this.statusText = this._request.statusText;
+            this.upload = this._request.upload;
+        };
+        HttpResponse.prototype.getResponseHeader = function (name) {
+            return this._request.getResponseHeader(name);
+        };
+        HttpResponse.prototype.getTag = function () {
+            return this._request['tag'];
         };
         HttpResponse.prototype.toJSON = function () {
-            if (this.responseType == HttpRequest_1.HttpRequest.RESPONSE_JSON) {
+            if (this.responseType == HttpResponse.JSON) {
                 return this.response;
             }
-            if (this.responseType == HttpRequest_1.HttpRequest.RESPONSE_TEXT || this.responseType == '') {
+            if (this.responseType == HttpResponse.TEXT || this.responseType == '') {
                 return JSON.parse(this.response);
             }
         };
+        HttpResponse.ARRAY_BUFFER = "arraybuffer";
+        HttpResponse.BLOB = "blob";
+        HttpResponse.DOCUMENT = "document";
+        HttpResponse.JSON = "json";
+        HttpResponse.TEXT = "text";
         return HttpResponse;
     }());
     exports.HttpResponse = HttpResponse;

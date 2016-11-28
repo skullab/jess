@@ -13,7 +13,11 @@
 
 <link rel="stylesheet" href="css/font-awesome.min.css">
 <link rel="stylesheet" href="css/bulma.css">
-
+<style type="text/css">
+[data-view] {
+	visibility:hidden;
+}
+</style>
 </head>
 
 <body>
@@ -23,24 +27,26 @@
 
 	<!-- Add your site or application content here -->
 	<section name="test" class="section" data-view="name-view">
-		<div class="container is-fluid" >
+		<div class="container is-fluid">
 
 			<label class="label">Email</label>
 			<p class="control has-icon has-icon-right">
 				<input class="input {{ is_valid_email }}" type="text"
 					placeholder="Email input" data-event="keyup" data-action="validate"
-					data-params="email"> <i class="fa {{ icon_check }}"></i><span class="help {{ help }}">{{ message }}</span>
+					data-params="email"> <i class="fa {{ icon_check }}"></i><span
+					class="help {{ help }}">{{ message }}</span>
 			</p>
 			<div>{{{ hello }}}</div>
-			<ul>
-				{{> list }}
+			<ul>{{> list }}
 			</ul>
 
 		</div>
 	</section>
-	
+
 	<section class="section" data-view="outer-view">
-		<div class="container"><h1>{{ great }}</h1></div>
+		<div class="container">
+			<h1>{{ great }}</h1>
+		</div>
 		<div data-view="inner-view">{{ greating }}</div>
 	</section>
 

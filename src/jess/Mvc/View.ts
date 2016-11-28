@@ -131,7 +131,10 @@ export class View implements ViewInterface, InjectionAwareInterface {
         return this._engine;
     }
     start() { }
-    finish() { }
+    finish() {
+		console.log('finish render');
+		this.getRootElement().style.visibility = "visible" ;
+	}
     query(q: string): any {
         return this._rootElement.querySelector(q);
     }

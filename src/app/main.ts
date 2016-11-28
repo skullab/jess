@@ -9,10 +9,24 @@ import {Controller} from '../jess/Mvc/Controller';
 import {Application} from '../jess/Mvc/Application';
 import {StringHelper} from '../jess/util/StringHelper';
 import {HttpRequest} from '../jess/Http/HttpRequest';
-import {HttpResponse} from '../jess/Http/HttpResponse' ;
+import {HttpResponse} from '../jess/Http/HttpResponse';
+import {HttpListener} from '../jess/Http/HttpListener';
 import * as s from '../jess/util/Shortcuts';
 
-
+export class MyHttpListener implements HttpListener {
+	onTimeout(event: Event, response: HttpResponse): void {
+		console.log('on timeout'); 
+	}
+    onAbort(event: Event, response: HttpResponse): void { }
+    onError(event: Event, response: HttpResponse): void { }
+    onLoad(event: Event, response: HttpResponse): void { 
+		console.log('by custom listener',response.getTag());
+		console.log(response.response,response.toJSON());
+	}
+    onLoadEnd(event: Event, response: HttpResponse): void { }
+    onLoadStart(event: Event, response: HttpResponse): void { }
+    onProgress(event: Event, response: HttpResponse): void { }
+}
 export module MyApp {
 
     export class IndexController extends Controller {
@@ -20,22 +34,31 @@ export module MyApp {
         indexAction() {
             let request = new HttpRequest();
             request.onreadystatechange(function(e) {
-                //console.log(e);
-                if (request.isDone()) {
-                    let response = request.getHttpResponse();
-                    console.log(response.response);
-                    //console.log(response.responseHeaders);
-                    
-                }
+				if (this.readyState == 4) {
+					console.log(e);
+					console.log(this.response);
+				}
             });
+			request.setHttpListener(new MyHttpListener());
+			request.setTimeout(1);
             //request.setCredentials(true);
             //request.setResponseType(HttpRequest.RESPONSE_JSON);
             //request.open(HttpRequest.POST, "https://query.yahooapis.com/v1/public/yql?q=select%20*%20from%20html%20where%20url%3D'http%3A%2F%2Fen.wikipedia.org%2Fwiki%2FYahoo'%20and%20xpath%3D'%2F%2Ftable%2F*%5Bcontains(.%2C%22Founder%22)%5D%2F%2Fa'&format=json&env=store%3A%2F%2Fdatatables.org%2Falltableswithkeys");
-            
-            request.open(HttpRequest.GET,'service.php');
-            //request.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
-            request.send("foo=bar&lorem=ipsum");
-           
+			request.setTag('first');
+			request.setParams({ name: 'test' });
+            request.open(HttpRequest.GET, 'service.php');
+            request.send();
+
+			request.setTag('second');
+            request.open(HttpRequest.POST, 'service.php');
+			request.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded');
+            request.send();
+
+			request.setTag('third');
+			request.setParams({ other: 'foobar' });
+			request.post('service.php');
+			//console.log(request.getTimeout());
+
 
             //this.view.setVar('hello', '<b>hello !</b>');
             this.view.setVar('message', 'please enter a email');

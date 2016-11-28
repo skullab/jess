@@ -265,7 +265,9 @@ define(["require", "exports", './Controller', './View', './Dispatcher', '../util
             //console.log('after handle');
             this.beforeRender();
             var view = this.getActiveView();
+            view.start();
             view.render();
+            view.finish();
             this.afterRender();
             this._findEvents();
             this._findListeners();

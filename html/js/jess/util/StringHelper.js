@@ -15,6 +15,13 @@ define(["require", "exports"], function (require, exports) {
                 return p1.toLowerCase();
             });
         };
+        StringHelper.uncamelize = function (str, separator) {
+            if (separator === void 0) { separator = '_'; }
+            str = str.replace(/[A-Z]/g, function (letter) {
+                return separator + letter.toLowerCase();
+            });
+            return str.replace(new RegExp("^" + separator), '');
+        };
         StringHelper.capitalize = function (str) {
             if (!str)
                 return this.emptyString();

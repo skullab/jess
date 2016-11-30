@@ -27,47 +27,43 @@ export class MyHttpListener implements HttpListener {
     onLoadStart(event: Event, response: HttpResponse): void { }
     onProgress(event: Event, response: HttpResponse): void { }
 }
-export abstract class BaseModel {}
-export class MyModel extends BaseModel{}
+export class Base {
+	protected base_n: string = 'base property';
+	getProperties(){
+		return Object.getOwnPropertyNames(this);
+	}
+}
 
+export class Test extends Base {
+
+	private priv: string = 'private';
+	public pub: string = 'public';
+	protected prot: string = 'protected';
+
+	public getPub() {
+		return 'method public';
+	}
+	private getPriv() {
+		return 'method private';
+	}
+	protected getProt() {
+		return 'method protected';
+	}
+	
+}
 export module MyApp {
 
     export class IndexController extends Controller {
 
         indexAction() {
 
-			let db;
-
-            let req = indexedDB.open('test2', 1);
-            req.onsuccess = function(evt) {
-                // Better use "this" than "req" to get the result to avoid problems with
-                // garbage collection.
-                // db = req.result;
-                db = this.result;
-                console.log("openDb DONE");
-                try {
-                    /*let transaction = db.transaction(["customers"], "readwrite");
-                    transaction.oncomplete = function(event) {
-                        console.log("transaction All done!");
-                    };
-                    transaction.onerror = function(event) {
-                        console.log('transaction error');
-                    };*/
-                } catch (e) {
-                    console.log(e);
-                }
-                
-
-            };
-            req.onerror = function(evt) {
-                console.error("openDb:", evt.target.errorCode);
-            };
-            req.onupgradeneeded = function(event) {
-                console.log('on upgrade needed');
-            }
-    
-            let m = new MyModel();
-            console.log(StringHelper.uncamelize(m.constructor.name));
+			let t = new Test();
+			let arr = t.getProperties();
+			for (let i of arr) {
+				if (t.hasOwnProperty(i)) {
+					console.log(t[i]);
+				}
+			}
 
             //this.view.setVar('hello', '<b>hello !</b>');
             this.view.setVar('message', 'please enter a email');

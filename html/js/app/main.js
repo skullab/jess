@@ -3,7 +3,7 @@ var __extends = (this && this.__extends) || function (d, b) {
     function __() { this.constructor = d; }
     d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
 };
-define(["require", "exports", '../jess/Di', '../jess/Mvc/View/Engine/Mustache', '../jess/Mvc/Controller', '../jess/Mvc/Application', '../jess/util/StringHelper'], function (require, exports, Di_1, Mustache_1, Controller_1, Application_1, StringHelper_1) {
+define(["require", "exports", '../jess/Di', '../jess/Mvc/View/Engine/Mustache', '../jess/Mvc/Controller', '../jess/Mvc/Application'], function (require, exports, Di_1, Mustache_1, Controller_1, Application_1) {
     "use strict";
     var MyHttpListener = (function () {
         function MyHttpListener() {
@@ -23,20 +23,36 @@ define(["require", "exports", '../jess/Di', '../jess/Mvc/View/Engine/Mustache', 
         return MyHttpListener;
     }());
     exports.MyHttpListener = MyHttpListener;
-    var BaseModel = (function () {
-        function BaseModel() {
+    var Base = (function () {
+        function Base() {
+            this.base_n = 'base property';
         }
-        return BaseModel;
+        Base.prototype.getProperties = function () {
+            return Object.getOwnPropertyNames(this);
+        };
+        return Base;
     }());
-    exports.BaseModel = BaseModel;
-    var MyModel = (function (_super) {
-        __extends(MyModel, _super);
-        function MyModel() {
+    exports.Base = Base;
+    var Test = (function (_super) {
+        __extends(Test, _super);
+        function Test() {
             _super.apply(this, arguments);
+            this.priv = 'private';
+            this.pub = 'public';
+            this.prot = 'protected';
         }
-        return MyModel;
-    }(BaseModel));
-    exports.MyModel = MyModel;
+        Test.prototype.getPub = function () {
+            return 'method public';
+        };
+        Test.prototype.getPriv = function () {
+            return 'method private';
+        };
+        Test.prototype.getProt = function () {
+            return 'method protected';
+        };
+        return Test;
+    }(Base));
+    exports.Test = Test;
     var MyApp;
     (function (MyApp) {
         var IndexController = (function (_super) {
@@ -45,28 +61,14 @@ define(["require", "exports", '../jess/Di', '../jess/Mvc/View/Engine/Mustache', 
                 _super.apply(this, arguments);
             }
             IndexController.prototype.indexAction = function () {
-                var db;
-                var req = indexedDB.open('test2', 1);
-                req.onsuccess = function (evt) {
-                    // Better use "this" than "req" to get the result to avoid problems with
-                    // garbage collection.
-                    // db = req.result;
-                    db = this.result;
-                    console.log("openDb DONE");
-                    try {
+                var t = new Test();
+                var arr = t.getProperties();
+                for (var _i = 0, arr_1 = arr; _i < arr_1.length; _i++) {
+                    var i = arr_1[_i];
+                    if (t.hasOwnProperty(i)) {
+                        console.log(t[i]);
                     }
-                    catch (e) {
-                        console.log(e);
-                    }
-                };
-                req.onerror = function (evt) {
-                    console.error("openDb:", evt.target.errorCode);
-                };
-                req.onupgradeneeded = function (event) {
-                    console.log('on upgrade needed');
-                };
-                var m = new MyModel();
-                console.log(StringHelper_1.StringHelper.uncamelize(m.constructor.name));
+                }
                 //this.view.setVar('hello', '<b>hello !</b>');
                 this.view.setVar('message', 'please enter a email');
                 //this.view.setVar('names', [{ name: 'John' }, { name: 'Foo' }, { name: 'Bar' }]);

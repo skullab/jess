@@ -1,10 +1,22 @@
 export interface ModelInterface {
-	setSource();
-	getSource();
-	setSchema();
-	getSchema();
-	setDbConnection();
-	getDbConnection();
+	setSource(source:string):void;
+	getSource():string;
+	setSchema(schema:string):void;
+	getSchema():string;
+	setUrl();
+	getUrl();
+	setWriteUrl();
+	getWriteUrl();
+	setReadUrl();
+	getReadUrl();
+	setDefaultRequestMethod();
+	getDefaultRequestMethod();
+	setWriteRequestMethod();
+	getWriteRequestMethod();
+	setReadRequestMethod();
+	getReadRequestMethod();
+	setTableColumns();
+	getTableColumns();
 	create();
 	update();
 	delete();

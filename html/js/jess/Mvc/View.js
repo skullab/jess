@@ -120,8 +120,7 @@ define(["require", "exports", '../util/Util', './View/TemplateObserver'], functi
             return this._engine;
         };
         View.prototype.start = function () {
-            //console.log('view start');
-            var _el = this.getRootElement();
+            // good place for loader...
         };
         View.prototype.finish = function () {
             //console.log('finish render');

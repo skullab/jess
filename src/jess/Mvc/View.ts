@@ -116,7 +116,7 @@ export class View implements ViewInterface, InjectionAwareInterface {
     }
     parse(tags?: string[]): void {
         this.checkEngine();
-        this.start();
+		this.start();
         this._parsedContent = this._engine.parse(this.getTemplate(), tags);
     }
     render(partials?: {}): void {
@@ -132,15 +132,14 @@ export class View implements ViewInterface, InjectionAwareInterface {
     getViewEngine(): ViewEngineInterface {
         return this._engine;
     }
-    start() {
-        //console.log('view start');
-        let _el = <HTMLElement>this.getRootElement();
-    }
+    start() { 
+		// good place for loader...
+	}
     finish() {
-        //console.log('finish render');
-        let _el = <HTMLElement>this.getRootElement();
-        _el.style.visibility = 'visible';
-    }
+		//console.log('finish render');
+		let _el = <HTMLElement>this.getRootElement();
+		_el.style.visibility = 'visible' ;
+	}
     query(q: string): any {
         return this._rootElement.querySelector(q);
     }

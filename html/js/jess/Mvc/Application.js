@@ -240,7 +240,7 @@ define(["require", "exports", './Controller', './View', './Dispatcher', '../util
         };
         Application.prototype.beforeHandle = function (mod, controller, action, params) {
             //console.log('before handle > setting defaults');
-            //this.getActiveView().parse();
+            this.getActiveView().parse();
             this.setDefaultModule(mod);
             this.setDefaultController(controller);
             this.setDefaultAction(action);
@@ -265,9 +265,7 @@ define(["require", "exports", './Controller', './View', './Dispatcher', '../util
             //console.log('after handle');
             this.beforeRender();
             var view = this.getActiveView();
-            view.start();
             view.render();
-            view.finish();
             this.afterRender();
             this._findEvents();
             this._findListeners();

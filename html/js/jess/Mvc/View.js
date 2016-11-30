@@ -102,6 +102,7 @@ define(["require", "exports", '../util/Util', './View/TemplateObserver'], functi
         };
         View.prototype.parse = function (tags) {
             this.checkEngine();
+            this.start();
             this._parsedContent = this._engine.parse(this.getTemplate(), tags);
         };
         View.prototype.render = function (partials) {
@@ -110,6 +111,7 @@ define(["require", "exports", '../util/Util', './View/TemplateObserver'], functi
             this.checkEngine();
             partials = partials ? partials : this.getPartials();
             this.setContent(this._engine.render(this.getTemplate(), this._variables, partials));
+            this.finish();
         };
         View.prototype.setViewEngine = function (engine) {
             this._engine = engine;
@@ -117,10 +119,14 @@ define(["require", "exports", '../util/Util', './View/TemplateObserver'], functi
         View.prototype.getViewEngine = function () {
             return this._engine;
         };
-        View.prototype.start = function () { };
+        View.prototype.start = function () {
+            //console.log('view start');
+            var _el = this.getRootElement();
+        };
         View.prototype.finish = function () {
-            console.log('finish render');
-            this.getRootElement().style.visibility = "visible";
+            //console.log('finish render');
+            var _el = this.getRootElement();
+            _el.style.visibility = 'visible';
         };
         View.prototype.query = function (q) {
             return this._rootElement.querySelector(q);

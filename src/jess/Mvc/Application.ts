@@ -261,7 +261,7 @@ export class Application implements ApplicationInterface, InjectionAwareInterfac
     }
     protected beforeHandle(mod?: string, controller?: string, action?: string, params?: {}[]) {
         //console.log('before handle > setting defaults');
-        //this.getActiveView().parse();
+        this.getActiveView().parse();
         this.setDefaultModule(mod);
         this.setDefaultController(controller);
         this.setDefaultAction(action);
@@ -289,9 +289,7 @@ export class Application implements ApplicationInterface, InjectionAwareInterfac
         //console.log('after handle');
         this.beforeRender();
         let view = this.getActiveView();
-		view.start();
-        view.render();
-		view.finish();
+		view.render();
         this.afterRender();
         this._findEvents();
         this._findListeners();

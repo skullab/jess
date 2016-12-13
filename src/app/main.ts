@@ -42,9 +42,28 @@ export class MyHttpListener implements HttpListener {
 }
 
 export class Books extends Model {
-    public id:number;
-    public title:string;
-    public author:string;
+    public id: number;
+    public title: string;
+    public author: string;
+
+    protected onInitialize() {
+        this.setBaseUri('service.php');
+    }
+
+    protected beforeConnect() {
+        console.log('before connect');
+        
+    }
+    protected afterConnect() {
+        console.log('after connect');
+    }
+    protected onSuccess(response: HttpResponse) {
+        console.log('success', response);
+
+    }
+    protected onError(response: HttpResponse) {
+        console.log('error', response);
+    }
 }
 export module MyApp {
 
@@ -53,9 +72,10 @@ export module MyApp {
         indexAction() {
 
             let book = new Books();
-            book.title = 'Alice in Wonderland' ;
-            book.author = 'Lewis Carroll' ;
+            book.title = 'Alice\'s Adventures in Wonderland';
+            book.author = 'Lewis Carroll';
             book.save();
+            
             
             //this.view.setVar('hello', '<b>hello !</b>');
             this.view.setVar('message', 'please enter a email');

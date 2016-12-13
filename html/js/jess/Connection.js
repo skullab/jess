@@ -1,4 +1,4 @@
-define(["require", "exports", './Connection/ConnectionListener'], function (require, exports, ConnectionListener_1) {
+define(["require", "exports"], function (require, exports) {
     "use strict";
     var Connection = (function () {
         function Connection(base_uri) {
@@ -107,7 +107,45 @@ define(["require", "exports", './Connection/ConnectionListener'], function (requ
         };
         Connection.prototype.setServices = function () {
             this._httpRequest = this._di.get('httpRequest');
-            this._httpRequest.setHttpListener('connectionListener', new ConnectionListener_1.ConnectionListener(this));
+            this._httpRequest.setHttpListener('connectionListener', this);
+        };
+        Connection.prototype.onResponse = function (callback) {
+            this._callback = callback;
+        };
+        Connection.prototype.onTimeout = function (event, response) {
+            if (typeof this._callback === 'function') {
+                this._callback('timeout', response, event);
+            }
+        };
+        Connection.prototype.onAbort = function (event, response) {
+            if (typeof this._callback === 'function') {
+                this._callback('abort', response, event);
+            }
+        };
+        Connection.prototype.onError = function (event, response) {
+            if (typeof this._callback === 'function') {
+                this._callback('error', response, event);
+            }
+        };
+        Connection.prototype.onLoad = function (event, response) {
+            if (typeof this._callback === 'function') {
+                this._callback('load', response, event);
+            }
+        };
+        Connection.prototype.onLoadEnd = function (event, response) {
+            if (typeof this._callback === 'function') {
+                this._callback('loadend', response, event);
+            }
+        };
+        Connection.prototype.onLoadStart = function (event, response) {
+            if (typeof this._callback === 'function') {
+                this._callback('loadstart', response, event);
+            }
+        };
+        Connection.prototype.onProgress = function (event, response) {
+            if (typeof this._callback === 'function') {
+                this._callback('progress', response, event);
+            }
         };
         Connection.prototype.setDi = function (di) {
             this._di = di;

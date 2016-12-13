@@ -3,27 +3,40 @@ import {InjectionAwareInterface} from '../Di/InjectionAwareInterface';
 import {DiInterface} from '../Di/DiInterface';
 import {StringHelper} from '../util/StringHelper';
 import {ConnectionInterface} from '../Connection/ConnectionInterface';
+import {HttpResponse} from '../Http/HttpResponse';
 import {Application} from './Application';
 
 export abstract class Model implements ModelInterface, InjectionAwareInterface {
     protected __$$di: DiInterface;
     protected __$$source: string;
-    protected __$$schema: string;
+    protected __$$schema: string = '' ;
     protected __$$connection: ConnectionInterface;
     protected __$$columns: string[];
     protected __$$values: {};
+    protected __$$primaryKeyName: string = 'id';
 
     constructor(values?: {}) {
         this.setDi(Application.DI);
-        this.setSource(StringHelper.uncamelize(this.constructor['name']));
+        let _source = StringHelper.uncamelize(this.constructor['name']);
+        this.setSource(_source);
+        //this.setBaseUri(_source);
         this.__$$columns = [];
         if (values) this.setValues(values);
         this.onInitialize();
     }
     protected onInitialize() { }
 
+    protected setPrimaryKeyName(name: string) {
+        this.__$$primaryKeyName = name;
+    }
+    protected getPrimaryKeyName(): string {
+        return this.__$$primaryKeyName;
+    }
     protected setValues(values: {}) {
         this.__$$values = values;
+    }
+    setBaseUri(uri: string) {
+        this.__$$connection.setBaseUri(uri);
     }
     getValues() {
         return this.__$$values;
@@ -77,18 +90,7 @@ export abstract class Model implements ModelInterface, InjectionAwareInterface {
     getColumns(): {} {
         return this.__$$columns;
     }
-    
-    create(data?: any) {
-        this.__$$connection.create(data);
-    }
-    update(data?: any) {
-        this.__$$connection.update(data);
-    }
-    delete(data?: any) {
-        this.__$$connection.delete(data);
-    }
-    save(data?: any) {
-        // create or update
+    protected _beforeConnection(data?: any) {
         let columns = [];
         if (data) {
             Object.getOwnPropertyNames(data).forEach(function(value, index, array) {
@@ -96,21 +98,88 @@ export abstract class Model implements ModelInterface, InjectionAwareInterface {
             });
         }
         this.setColumns(columns);
-        let values = {} ;
+        let values = {};
         for (let n of this.__$$columns) {
-            values[n] = this[n] ;
+            values[n] = this[n];
         }
+        values['source'] = this.getSource();
+        values['schema'] = this.getSchema();
         this.setValues(values);
-        console.log(this.getColumns());
-        console.log(this.getValues());
+    }
+    create(data?: any) {
+        this._beforeConnection(data);
+        this.__$$connection.create(this.getValues());
+    }
+    update(data?: any) {
+        this._beforeConnection(data);
+        this.__$$connection.update(this.getValues());
+    }
+    delete(data?: any) {
+        this.__$$connection.delete(this.getValues());
+    }
+    save(data?: any) {
+        if (this.hasOwnProperty(this.getPrimaryKeyName())) {
+            this.update(data);
+        } else {
+            this.create(data);
+        }
     }
     count() { }
-    static find() { }
-    static findFirst() { }
+    static find(q?: any) {
+        
+    }
+    static findFirst(q?: any) { }
+    static query(q: any) {
+        
+    }
 
 
     protected setServices() {
         this.__$$connection = this.__$$di.get('connection');
+        this.__$$connection.onResponse(this.onResponse.bind(this));
+    }
+
+    protected beforeConnect() { }
+    protected onSuccess(response: HttpResponse) { }
+    protected onError(response: HttpResponse) { }
+    protected afterConnect() { }
+
+    protected _onSuccess(response: HttpResponse) {
+        try {
+            let _o = response.toJSON();
+            if (_o.hasOwnProperty(this.getPrimaryKeyName())) {
+                this.__$$values[this.getPrimaryKeyName()] = _o[this.getPrimaryKeyName()];
+                this[this.getPrimaryKeyName()] = _o[this.getPrimaryKeyName()];
+            }
+        } catch (e) {
+
+        }
+        this.onSuccess(response);
+    }
+    protected _onError(response: HttpResponse) {
+        this.onError(response);
+    }
+    protected onResponse(state: string, response: HttpResponse, event: Event) {
+        switch (state) {
+            case 'loadstart':
+                this.beforeConnect();
+                break;
+            case 'load':
+                if (response.status == 200) {
+                    this._onSuccess(response);
+                } else {
+                    this._onError(response);
+                }
+                break;
+            case 'loadend':
+                this.afterConnect();
+                break;
+            case 'abort':
+            case 'timeout':
+            case 'error':
+                this._onError(response);
+                break;
+        }
     }
     setDi(di: DiInterface): void {
         this.__$$di = di;

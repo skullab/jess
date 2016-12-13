@@ -3,8 +3,10 @@ import {ConnectionListener} from './Connection/ConnectionListener';
 import {InjectionAwareInterface} from './Di/InjectionAwareInterface';
 import {DiInterface} from './Di/DiInterface';
 import {HttpRequest} from './Http/HttpRequest';
+import {HttpResponse} from './Http/HttpResponse';
+import {HttpListener} from './Http/HttpListener';
 
-export class Connection implements ConnectionInterface, InjectionAwareInterface {
+export class Connection implements ConnectionInterface, InjectionAwareInterface, HttpListener {
     protected _di: DiInterface;
     protected _baseUri: string;
     protected _createUri: string = '';
@@ -17,6 +19,7 @@ export class Connection implements ConnectionInterface, InjectionAwareInterface 
     protected _updateMethod: string;
     protected _deleteMethod: string;
     protected _httpRequest: HttpRequest;
+    protected _callback: any;
 
     constructor(base_uri?: string) {
         base_uri = base_uri || './';
@@ -50,19 +53,19 @@ export class Connection implements ConnectionInterface, InjectionAwareInterface 
     }
     create(data: any) {
         let uri = this.getBaseUri() + this.getCreateUri();
-        this._resolveRequest(this.getCreateMethod(),uri,data);
+        this._resolveRequest(this.getCreateMethod(), uri, data);
     }
     read(data: any) {
         let uri = this.getBaseUri() + this.getReadUri();
-        this._resolveRequest(this.getReadMethod(),uri,data);
+        this._resolveRequest(this.getReadMethod(), uri, data);
     }
     update(data: any) {
         let uri = this.getBaseUri() + this.getUpdateUri();
-        this._resolveRequest(this.getUpdateMethod(),uri,data);
+        this._resolveRequest(this.getUpdateMethod(), uri, data);
     }
     delete(data: any) {
         let uri = this.getBaseUri() + this.getDeleteUri();
-        this._resolveRequest(this.getDeleteMethod(),uri,data);
+        this._resolveRequest(this.getDeleteMethod(), uri, data);
     }
     setBaseUri(uri: string) {
         this._baseUri = uri;
@@ -121,8 +124,48 @@ export class Connection implements ConnectionInterface, InjectionAwareInterface 
     }
     protected setServices() {
         this._httpRequest = this._di.get('httpRequest');
-        this._httpRequest.setHttpListener('connectionListener',new ConnectionListener(this));
+        this._httpRequest.setHttpListener('connectionListener', this);
     }
+
+    onResponse(callback: (state: string, response: HttpResponse, event: Event) => void) {
+        this._callback = callback;
+    }
+    onTimeout(event: Event, response: HttpResponse): void {
+        if (typeof this._callback === 'function') {
+            this._callback('timeout',response,event);
+        }
+    }
+    onAbort(event: Event, response: HttpResponse): void {
+        if (typeof this._callback === 'function') {
+            this._callback('abort',response,event);
+        }
+    }
+    onError(event: Event, response: HttpResponse): void {
+        if (typeof this._callback === 'function') {
+            this._callback('error',response,event);
+        }
+    }
+    onLoad(event: Event, response: HttpResponse): void {
+        if (typeof this._callback === 'function') {
+            this._callback('load',response,event);
+        }
+    }
+    onLoadEnd(event: Event, response: HttpResponse): void {
+        if (typeof this._callback === 'function') {
+            this._callback('loadend',response,event);
+        }
+    }
+    onLoadStart(event: Event, response: HttpResponse): void {
+        if (typeof this._callback === 'function') {
+            this._callback('loadstart',response,event);
+        }
+    }
+    onProgress(event: Event, response: HttpResponse): void {
+        if (typeof this._callback === 'function') {
+            this._callback('progress',response,event);
+        }
+    }
+
     setDi(di: DiInterface): void {
         this._di = di;
         this.setServices();

@@ -36,7 +36,7 @@ export class TemplateObserver {
             let origin_tag = null;
 
             if (!origin) {
-                console.warn('origin is not exists !');
+                //console.warn('origin is not exists !');
 
                 origin = target.cloneNode();
                 let _origin = <Element>origin;
@@ -66,10 +66,10 @@ export class TemplateObserver {
             }
             //console.info('node type equality:', target.nodeType === origin_type);
             if (target.nodeType !== origin_type) {
-                console.warn('origin node type is different to target node type!', target, origin);
+                //console.warn('origin node type is different to target node type!', target, origin);
             }
             if (target.nodeName != origin_tag) {
-                console.warn('tag equality:', target.nodeName == origin_tag, target.nodeName, origin_tag);
+                //console.warn('tag equality:', target.nodeName == origin_tag, target.nodeName, origin_tag);
                 parentOrigin.replaceChild(target.cloneNode(true), origin);
             } else {
                 //console.info('tag equality:', target.nodeName == origin_tag);
@@ -87,9 +87,9 @@ export class TemplateObserver {
                 //console.log('first child origin node type:', origin.nodeType);
             }
             if (!target && origin) {
-                console.warn('target not exist but origin is an element...removing ?', origin);
-                console.warn('origin type:', origin.nodeType);
-                console.warn('origin tag:', origin.nodeName);
+                //console.warn('target not exist but origin is an element...removing ?', origin);
+                //console.warn('origin type:', origin.nodeType);
+                //console.warn('origin tag:', origin.nodeName);
                 switch (origin.nodeType) {
                     case TemplateObserver.TYPE_TEXT_NODE:
                         origin.textContent = null;
@@ -108,7 +108,7 @@ export class TemplateObserver {
                 //console.log('next sibling');
                 target = target.nextSibling;
                 if (!origin) {
-                    console.warn('origin is not exists...nextSibling?');
+                    //console.warn('origin is not exists...nextSibling?');
                 } else {
                     origin = origin.nextSibling;
                 }
@@ -119,7 +119,7 @@ export class TemplateObserver {
             if (target.nodeType === TemplateObserver.TYPE_TEXT_NODE) {
                 //console.log('...is a text node');
                 if (!origin) {
-                    console.warn('target is a text node but origin doesn\'t exist !');
+                    //console.warn('target is a text node but origin doesn\'t exist !');
 
                 } else {
                     let txt_n_eq = target == origin;

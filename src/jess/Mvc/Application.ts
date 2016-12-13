@@ -34,7 +34,6 @@ export class Application implements ApplicationInterface, InjectionAwareInterfac
     protected _dataApplicationPrefix: string;
 
     constructor(di: DiInterface, prefix: string = '') {
-        
         this.setDi(Application.DI = di);
         this.setDataApplicationPrefix(prefix);
 

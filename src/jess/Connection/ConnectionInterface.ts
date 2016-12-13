@@ -1,3 +1,5 @@
+import {HttpResponse} from '../Http/HttpResponse' ;
+
 export interface ConnectionInterface {
     create(data:any);
     read(data:any);
@@ -21,4 +23,5 @@ export interface ConnectionInterface {
     getDeleteMethod():string;
     setDeleteUri(uri:string):void;
     getDeleteUri():string;
+    onResponse(callback: (state: string, response: HttpResponse, event: Event) => void);
 }

@@ -39,6 +39,21 @@ define(["require", "exports", '../jess/Di', '../jess/Mvc/View/Engine/Mustache', 
         function Books() {
             _super.apply(this, arguments);
         }
+        Books.prototype.onInitialize = function () {
+            this.setBaseUri('service.php');
+        };
+        Books.prototype.beforeConnect = function () {
+            console.log('before connect');
+        };
+        Books.prototype.afterConnect = function () {
+            console.log('after connect');
+        };
+        Books.prototype.onSuccess = function (response) {
+            console.log('success', response);
+        };
+        Books.prototype.onError = function (response) {
+            console.log('error', response);
+        };
         return Books;
     }(Model_1.Model));
     exports.Books = Books;
@@ -51,7 +66,7 @@ define(["require", "exports", '../jess/Di', '../jess/Mvc/View/Engine/Mustache', 
             }
             IndexController.prototype.indexAction = function () {
                 var book = new Books();
-                book.title = 'Alice in Wonderland';
+                book.title = 'Alice\'s Adventures in Wonderland';
                 book.author = 'Lewis Carroll';
                 book.save();
                 //this.view.setVar('hello', '<b>hello !</b>');

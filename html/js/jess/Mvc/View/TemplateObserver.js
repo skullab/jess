@@ -24,7 +24,7 @@ define(["require", "exports"], function (require, exports) {
                 var origin_type = null;
                 var origin_tag = null;
                 if (!origin) {
-                    console.warn('origin is not exists !');
+                    //console.warn('origin is not exists !');
                     origin = target.cloneNode();
                     var _origin = origin;
                     var _target = target;
@@ -50,10 +50,9 @@ define(["require", "exports"], function (require, exports) {
                 }
                 //console.info('node type equality:', target.nodeType === origin_type);
                 if (target.nodeType !== origin_type) {
-                    console.warn('origin node type is different to target node type!', target, origin);
                 }
                 if (target.nodeName != origin_tag) {
-                    console.warn('tag equality:', target.nodeName == origin_tag, target.nodeName, origin_tag);
+                    //console.warn('tag equality:', target.nodeName == origin_tag, target.nodeName, origin_tag);
                     parentOrigin.replaceChild(target.cloneNode(true), origin);
                 }
                 else {
@@ -67,9 +66,9 @@ define(["require", "exports"], function (require, exports) {
                 if (origin) {
                 }
                 if (!target && origin) {
-                    console.warn('target not exist but origin is an element...removing ?', origin);
-                    console.warn('origin type:', origin.nodeType);
-                    console.warn('origin tag:', origin.nodeName);
+                    //console.warn('target not exist but origin is an element...removing ?', origin);
+                    //console.warn('origin type:', origin.nodeType);
+                    //console.warn('origin tag:', origin.nodeName);
                     switch (origin.nodeType) {
                         case TemplateObserver.TYPE_TEXT_NODE:
                             origin.textContent = null;
@@ -85,7 +84,6 @@ define(["require", "exports"], function (require, exports) {
                     //console.log('next sibling');
                     target = target.nextSibling;
                     if (!origin) {
-                        console.warn('origin is not exists...nextSibling?');
                     }
                     else {
                         origin = origin.nextSibling;
@@ -97,7 +95,6 @@ define(["require", "exports"], function (require, exports) {
                 if (target.nodeType === TemplateObserver.TYPE_TEXT_NODE) {
                     //console.log('...is a text node');
                     if (!origin) {
-                        console.warn('target is a text node but origin doesn\'t exist !');
                     }
                     else {
                         var txt_n_eq = target == origin;

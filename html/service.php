@@ -1,6 +1,7 @@
 <?php
 $method = $_SERVER['REQUEST_METHOD'] ;
 $params = [] ;
+$response = [] ;
 switch($method){
 	case 'DELETE':
 	case 'PUT' :
@@ -11,10 +12,13 @@ switch($method){
 	break;
 	case 'POST':
 	$params = $_POST ;
+	$response = $params ;
+	$response['id'] = 1 ;
 	break;
 	
 }
 $params['method'] = $method ;
+
 //sleep(1);
-echo json_encode($params);
+echo json_encode($response);
 ?>

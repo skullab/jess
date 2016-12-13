@@ -1,13 +1,14 @@
 import {HttpRequest} from './HttpRequest';
 export class HttpResponse {
-	
-	static ARRAY_BUFFER = "arraybuffer";
+
+    static ARRAY_BUFFER = "arraybuffer";
     static BLOB = "blob";
     static DOCUMENT = "document";
     static JSON = "json";
     static TEXT = "text";
-	
+
     protected _request: XMLHttpRequest;
+    protected _listenerName: string;
 
     public response: any;
     public responseText: string;
@@ -17,10 +18,11 @@ export class HttpResponse {
     public status: number;
     public statusText: string;
     public responseHeaders: string;
-	public upload: XMLHttpRequestUpload;
+    public upload: XMLHttpRequestUpload;
 
-    constructor(request: XMLHttpRequest) {
+    constructor(request: XMLHttpRequest, listenerName: string) {
         this._request = request;
+        this._listenerName = listenerName;
         this._resolve();
     }
 
@@ -39,15 +41,18 @@ export class HttpResponse {
         this.responseHeaders = this._request.getAllResponseHeaders();
         this.status = this._request.status;
         this.statusText = this._request.statusText;
-		this.upload = this._request.upload;
+        this.upload = this._request.upload;
     }
 
-	getResponseHeader(name: string): string {
+    getListenerName(): string {
+        return this._listenerName ;
+    }
+    getResponseHeader(name: string): string {
         return this._request.getResponseHeader(name);
     }
-	getTag(): string {
-		return this._request['tag'] ;
-	}
+    getTag(): string {
+        return this._request['tag'];
+    }
     toJSON(): any {
         if (this.responseType == HttpResponse.JSON) {
             return this.response;

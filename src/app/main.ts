@@ -11,45 +11,40 @@ import {StringHelper} from '../jess/util/StringHelper';
 import {HttpRequest} from '../jess/Http/HttpRequest';
 import {HttpResponse} from '../jess/Http/HttpResponse';
 import {HttpListener} from '../jess/Http/HttpListener';
+import {Connection} from '../jess/Connection';
+import {Model} from '../jess/Mvc/Model';
 import * as s from '../jess/util/Shortcuts';
 
 export class MyHttpListener implements HttpListener {
-	onTimeout(event: Event, response: HttpResponse): void {
-		console.log('on timeout');
-	}
-    onAbort(event: Event, response: HttpResponse): void { }
-    onError(event: Event, response: HttpResponse): void { }
+    onTimeout(event: Event, response: HttpResponse): void {
+        console.log('on timeout');
+    }
+    onAbort(event: Event, response: HttpResponse): void {
+        console.log('on abort');
+    }
+    onError(event: Event, response: HttpResponse): void {
+        console.log('on error');
+    }
     onLoad(event: Event, response: HttpResponse): void {
-		console.log('by custom listener', response.getTag());
-		console.log(response.response, response.toJSON());
-	}
-    onLoadEnd(event: Event, response: HttpResponse): void { }
-    onLoadStart(event: Event, response: HttpResponse): void { }
-    onProgress(event: Event, response: HttpResponse): void { }
+        console.log('by custom listener', response.getTag());
+        console.log(response.getListenerName());
+        console.log(response.response);
+    }
+    onLoadEnd(event: Event, response: HttpResponse): void {
+        console.log('on load end');
+    }
+    onLoadStart(event: Event, response: HttpResponse): void {
+        console.log('on load start');
+    }
+    onProgress(event: Event, response: HttpResponse): void {
+        console.log('on progress');
+    }
 }
-export class Base {
-	protected base_n: string = 'base property';
-	getProperties(){
-		return Object.getOwnPropertyNames(this);
-	}
-}
 
-export class Test extends Base {
-
-	private priv: string = 'private';
-	public pub: string = 'public';
-	protected prot: string = 'protected';
-
-	public getPub() {
-		return 'method public';
-	}
-	private getPriv() {
-		return 'method private';
-	}
-	protected getProt() {
-		return 'method protected';
-	}
-	
+export class Books extends Model {
+    public id:number;
+    public title:string;
+    public author:string;
 }
 export module MyApp {
 
@@ -57,14 +52,11 @@ export module MyApp {
 
         indexAction() {
 
-			let t = new Test();
-			let arr = t.getProperties();
-			for (let i of arr) {
-				if (t.hasOwnProperty(i)) {
-					console.log(t[i]);
-				}
-			}
-
+            let book = new Books();
+            book.title = 'Alice in Wonderland' ;
+            book.author = 'Lewis Carroll' ;
+            book.save();
+            
             //this.view.setVar('hello', '<b>hello !</b>');
             this.view.setVar('message', 'please enter a email');
             //this.view.setVar('names', [{ name: 'John' }, { name: 'Foo' }, { name: 'Bar' }]);
@@ -113,7 +105,14 @@ di.set('viewEngine', function() {
     let engine = new Mustache();
     return engine;
 }, true);
-
+di.set('httpRequest', function() {
+    let request = new HttpRequest();
+    return request;
+}, true);
+di.set('connection', function() {
+    let connection = new Connection();
+    return connection;
+}, false);
 /*di.set('view', function() {
     let view = new View();
     return view ;

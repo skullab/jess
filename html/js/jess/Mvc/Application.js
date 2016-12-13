@@ -21,7 +21,7 @@ define(["require", "exports", './Controller', './View', './Dispatcher', '../util
         function Application(di, prefix) {
             if (prefix === void 0) { prefix = ''; }
             this._modules = {};
-            this.setDi(di);
+            this.setDi(Application.DI = di);
             this.setDataApplicationPrefix(prefix);
             this._registerServices();
             this._findViews();

@@ -16,6 +16,7 @@ module DefaultModule {
 
 export class Application implements ApplicationInterface, InjectionAwareInterface {
 
+    static DI:DiInterface;
     protected _di: DiInterface;
     protected _modules: {} = {};
     protected _events: any;
@@ -33,8 +34,8 @@ export class Application implements ApplicationInterface, InjectionAwareInterfac
     protected _dataApplicationPrefix: string;
 
     constructor(di: DiInterface, prefix: string = '') {
-
-        this.setDi(di);
+        
+        this.setDi(Application.DI = di);
         this.setDataApplicationPrefix(prefix);
 
         this._registerServices();

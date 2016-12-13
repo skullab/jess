@@ -1,8 +1,9 @@
 define(["require", "exports"], function (require, exports) {
     "use strict";
     var HttpResponse = (function () {
-        function HttpResponse(request) {
+        function HttpResponse(request, listenerName) {
             this._request = request;
+            this._listenerName = listenerName;
             this._resolve();
         }
         HttpResponse.prototype._resolve = function () {
@@ -22,6 +23,9 @@ define(["require", "exports"], function (require, exports) {
             this.status = this._request.status;
             this.statusText = this._request.statusText;
             this.upload = this._request.upload;
+        };
+        HttpResponse.prototype.getListenerName = function () {
+            return this._listenerName;
         };
         HttpResponse.prototype.getResponseHeader = function (name) {
             return this._request.getResponseHeader(name);

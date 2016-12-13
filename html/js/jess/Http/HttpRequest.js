@@ -9,6 +9,8 @@ define(["require", "exports", './HttpResponse'], function (require, exports, Htt
             this._timeout = 0;
             this._globalTimeout = 0;
             this._credentials = false;
+            this._listeners = Object.create({});
+            this._params = Object.create({});
             this.reset();
         }
         HttpRequest.prototype.setTag = function (tag) {
@@ -146,7 +148,7 @@ define(["require", "exports", './HttpResponse'], function (require, exports, Htt
             switch (this.getMethod()) {
                 case HttpRequest.HEAD:
                 case HttpRequest.GET:
-                    var _p = this._encodeParams();
+                    var _p = this.getData() || this._encodeParams();
                     if (_p.length > 0) {
                         url += '?' + _p;
                     }
@@ -181,7 +183,7 @@ define(["require", "exports", './HttpResponse'], function (require, exports, Htt
             if (user === void 0) { user = null; }
             if (password === void 0) { password = null; }
             this.open(HttpRequest.GET, url, async, user, password);
-            this.send(null);
+            return this.send(null);
         };
         HttpRequest.prototype.post = function (url, async, user, password) {
             if (async === void 0) { async = true; }
@@ -189,56 +191,56 @@ define(["require", "exports", './HttpResponse'], function (require, exports, Htt
             if (password === void 0) { password = null; }
             this.open(HttpRequest.POST, url, async, user, password);
             this.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded');
-            this.send(this.getData());
+            return this.send(this.getData());
         };
         HttpRequest.prototype.head = function (url, async, user, password) {
             if (async === void 0) { async = true; }
             if (user === void 0) { user = null; }
             if (password === void 0) { password = null; }
             this.open(HttpRequest.HEAD, url, async, user, password);
-            this.send(null);
+            return this.send(null);
         };
         HttpRequest.prototype.put = function (url, async, user, password) {
             if (async === void 0) { async = true; }
             if (user === void 0) { user = null; }
             if (password === void 0) { password = null; }
             this.open(HttpRequest.PUT, url, async, user, password);
-            this.send(this.getData());
+            return this.send(this.getData());
         };
         HttpRequest.prototype.delete = function (url, async, user, password) {
             if (async === void 0) { async = true; }
             if (user === void 0) { user = null; }
             if (password === void 0) { password = null; }
             this.open(HttpRequest.DELETE, url, async, user, password);
-            this.send(this.getData());
+            return this.send(this.getData());
         };
         HttpRequest.prototype.trace = function (url, async, user, password) {
             if (async === void 0) { async = true; }
             if (user === void 0) { user = null; }
             if (password === void 0) { password = null; }
             this.open(HttpRequest.TRACE, url, async, user, password);
-            this.send(this.getData());
+            return this.send(this.getData());
         };
         HttpRequest.prototype.connect = function (url, async, user, password) {
             if (async === void 0) { async = true; }
             if (user === void 0) { user = null; }
             if (password === void 0) { password = null; }
             this.open(HttpRequest.CONNECT, url, async, user, password);
-            this.send(this.getData());
+            return this.send(this.getData());
         };
         HttpRequest.prototype.patch = function (url, async, user, password) {
             if (async === void 0) { async = true; }
             if (user === void 0) { user = null; }
             if (password === void 0) { password = null; }
             this.open(HttpRequest.PATCH, url, async, user, password);
-            this.send(this.getData());
+            return this.send(this.getData());
         };
         HttpRequest.prototype.options = function (url, async, user, password) {
             if (async === void 0) { async = true; }
             if (user === void 0) { user = null; }
             if (password === void 0) { password = null; }
             this.open(HttpRequest.OPTIONS, url, async, user, password);
-            this.send(this.getData());
+            return this.send(this.getData());
         };
         //*************************************************************************************
         /**
@@ -333,17 +335,28 @@ define(["require", "exports", './HttpResponse'], function (require, exports, Htt
         HttpRequest.prototype.send = function (data) {
             if (data === void 0) { data = null; }
             var _d = this.beforeSend(data);
-            this.getRawRequest().send(_d);
-            this.afterSend();
+            var _r = this.getRawRequest();
+            _r.send(_d);
+            return this.afterSend(_r);
         };
-        HttpRequest.prototype.afterSend = function () {
+        HttpRequest.prototype.afterSend = function (request) {
             this.reset();
+            return request;
         };
-        HttpRequest.prototype.setHttpListener = function (listener) {
-            this._listener = listener;
+        HttpRequest.prototype.setHttpListener = function (name, listener, once) {
+            if (once === void 0) { once = false; }
+            this._listeners[name] = { 'listener': listener, 'once': once, 'consumed': false };
         };
-        HttpRequest.prototype.getHttpListener = function () {
-            return this._listener;
+        HttpRequest.prototype.getHttpListener = function (name) {
+            if (this._listeners.hasOwnProperty(name)) {
+                return this._listeners[name].listener;
+            }
+            return null;
+        };
+        HttpRequest.prototype.removeHttpListener = function (name) {
+            if (this._listeners.hasOwnProperty(name)) {
+                delete this._listeners[name];
+            }
         };
         HttpRequest.prototype.setAsync = function (async) {
             this._async = async;
@@ -362,30 +375,52 @@ define(["require", "exports", './HttpResponse'], function (require, exports, Htt
             this.setTimeout(0);
         };
         HttpRequest.prototype._resetListener = function () {
-            if (this._listener) {
-                var _r = this.getRawRequest();
-                var _this_1 = this;
-                _r.addEventListener('timeout', function (e) {
-                    _this_1._listener.onTimeout(e, new HttpResponse_1.HttpResponse(this));
-                }, false);
-                _r.addEventListener('abort', function (e) {
-                    _this_1._listener.onAbort(e, new HttpResponse_1.HttpResponse(this));
-                }, false);
-                _r.addEventListener('error', function (e) {
-                    _this_1._listener.onError(e, new HttpResponse_1.HttpResponse(this));
-                }, false);
-                _r.addEventListener('loadstart', function (e) {
-                    _this_1._listener.onLoadStart(e, new HttpResponse_1.HttpResponse(this));
-                }, false);
-                _r.addEventListener('progress', function (e) {
-                    _this_1._listener.onProgress(e, new HttpResponse_1.HttpResponse(this));
-                }, false);
-                _r.addEventListener('load', function (e) {
-                    _this_1._listener.onLoad(e, new HttpResponse_1.HttpResponse(this));
-                }, false);
-                _r.addEventListener('loadend', function (e) {
-                    _this_1._listener.onLoadEnd(e, new HttpResponse_1.HttpResponse(this));
-                }, false);
+            var _r = this.getRawRequest();
+            var _this = this;
+            var _loop_1 = function(n) {
+                if (this_1._listeners.hasOwnProperty(n)) {
+                    _r.addEventListener('timeout', function (e) {
+                        if (_this._listeners[n].once && _this._listeners[n].consumed)
+                            return;
+                        _this._listeners[n].listener.onTimeout(e, new HttpResponse_1.HttpResponse(this, n));
+                    }, false);
+                    _r.addEventListener('abort', function (e) {
+                        if (_this._listeners[n].once && _this._listeners[n].consumed)
+                            return;
+                        _this._listeners[n].listener.onAbort(e, new HttpResponse_1.HttpResponse(this, n));
+                    }, false);
+                    _r.addEventListener('error', function (e) {
+                        if (_this._listeners[n].once && _this._listeners[n].consumed)
+                            return;
+                        _this._listeners[n].listener.onError(e, new HttpResponse_1.HttpResponse(this, n));
+                    }, false);
+                    _r.addEventListener('loadstart', function (e) {
+                        if (_this._listeners[n].once && _this._listeners[n].consumed)
+                            return;
+                        //_this._listeners[n].consumed = false;
+                        _this._listeners[n].listener.onLoadStart(e, new HttpResponse_1.HttpResponse(this, n));
+                    }, false);
+                    _r.addEventListener('progress', function (e) {
+                        if (_this._listeners[n].once && _this._listeners[n].consumed)
+                            return;
+                        _this._listeners[n].listener.onProgress(e, new HttpResponse_1.HttpResponse(this, n));
+                    }, false);
+                    _r.addEventListener('load', function (e) {
+                        if (_this._listeners[n].once && _this._listeners[n].consumed)
+                            return;
+                        _this._listeners[n].listener.onLoad(e, new HttpResponse_1.HttpResponse(this, n));
+                    }, false);
+                    _r.addEventListener('loadend', function (e) {
+                        if (_this._listeners[n].once && _this._listeners[n].consumed)
+                            return;
+                        _this._listeners[n].listener.onLoadEnd(e, new HttpResponse_1.HttpResponse(this, n));
+                        _this._listeners[n].consumed = true;
+                    }, false);
+                }
+            };
+            var this_1 = this;
+            for (var n in this._listeners) {
+                _loop_1(n);
             }
         };
         HttpRequest.OPTIONS = 'OPTIONS';
